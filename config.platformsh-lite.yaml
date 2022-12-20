@@ -1,4 +1,7 @@
 #ddev-generated
+# To upgrade: ddev get https://github.com/hanoii/ddev-platformsh-lite/tarball/master
+# If you wish to maintain this file differently, remove #ddev-generated above.
+# @see https://github.com/hanoii/ddev-platformsh-lite
 web_environment:
   # Avoid checking for updates, as it will be updated on start.
   - PLATFORMSH_CLI_UPDATES_CHECK=0

@@ -62,7 +62,10 @@ global_files:
 
 # DDEV environment variables can be interpolated into these actions
 post_install_actions:
-# - chmod +x ~/.ddev/commands/web/somecommand
+  - |
+    #ddev-description: Adding files to git bypassing default ignore
+    git add -f config.platformsh-lite.yaml
+
 # - touch somefile.${GOOS}.${DDEV_WEBSERVER}
 # - perl -pi -e 's/oldstring/newstring/g' docker-compose.addon-template.yaml
 
