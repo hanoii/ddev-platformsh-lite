@@ -7,6 +7,7 @@ setup() {
   export DDEV_NON_INTERACTIVE=true
   ddev delete -Oy ${PROJNAME} >/dev/null 2>&1 || true
   cd "${TESTDIR}"
+  git init .
   ddev config --project-name=${PROJNAME}
   ddev start -y >/dev/null
 }
