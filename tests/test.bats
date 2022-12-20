@@ -25,16 +25,15 @@ teardown() {
   ddev get ${DIR}
   ddev restart
   # Do something here to verify functioning extra service
-  # For extra credit, use a real CMS with actual config.
-  # ddev exec "curl -s elasticsearch:9200" | grep "${PROJNAME}-elasticsearch"
+  # For now, we do nothing, unly make sure that it runs OK.
 }
 
-@test "install from release" {
-  set -eu -o pipefail
-  cd ${TESTDIR} || ( printf "unable to cd to ${TESTDIR}\n" && exit 1 )
-  echo "# ddev get drud/ddev-addon-template with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
-  ddev get drud/ddev-addon-template
-  ddev restart >/dev/null
-  # Do something useful here that verifies the add-on
-  # ddev exec "curl -s elasticsearch:9200" | grep "${PROJNAME}-elasticsearch"
-}
+#@test "install from release" {
+#  set -eu -o pipefail
+#  cd ${TESTDIR} || ( printf "unable to cd to ${TESTDIR}\n" && exit 1 )
+#  echo "# ddev get drud/ddev-addon-template with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
+#  ddev get drud/ddev-addon-template
+#  ddev restart >/dev/null
+#  # Do something useful here that verifies the add-on
+#  # ddev exec "curl -s elasticsearch:9200" | grep "${PROJNAME}-elasticsearch"
+#}
