@@ -16,4 +16,8 @@ hooks:
     # It's recommended that you run this before any other tasks, so you can copy
     # the next line to your config.yaml file. The actions there will be run once,
     # you don't need to do anything on this file.
+    #
+    # For drupal/drush it's recommended to be added after
+    # - composer: install
+    #
     - exec: 'bash .ddev/platformsh-lite-addon-post-start.sh'
