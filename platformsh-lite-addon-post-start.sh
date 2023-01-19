@@ -21,7 +21,7 @@ platform self:install -qy || true
 
 if [[ "$PLATFORM_PROJECT" != "" ]] && [[ ! -d .platform/local ]]; then
   printf "✔ Setting remote project to $PLATFORM_PROJECT"
-  yes n | platform project:set-remote $PLATFORM_PROJECT
+  platform project:set-remote $PLATFORM_PROJECT
 fi
 
 # And create drush aliases
