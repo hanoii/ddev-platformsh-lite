@@ -22,9 +22,11 @@ platform self:install -qy || true
 if [[ "$PLATFORM_PROJECT" != "" ]] && [[ ! -d .platform/local ]]; then
   printf "✔ Setting remote project to $PLATFORM_PROJECT"
   platform project:set-remote $PLATFORM_PROJECT
+else
+  printf "✗ Platform.sh project was not set, needed for drush aliases. Please set PLATFORM_PROJECT env var."
 fi
 
-# And create drush aliases
-if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]]; then
+# And create drush aliases, we need to have set remote
+if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]] && [[ -d .platform/local ]]; then
   ([ ! -z "${PLATFORMSH_CLI_TOKEN:-}" ] && platform drush-aliases -r -g ${DDEV_PROJECT} -y) || true
 fi
