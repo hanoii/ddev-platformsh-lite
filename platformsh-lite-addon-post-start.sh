@@ -19,6 +19,12 @@ platform self:install -qy || true
 # Cert load
 ([ ! -z "${PLATFORMSH_CLI_TOKEN:-}" ] && platform ssh-cert:load -y) || true
 
+if [[ "$PLATFORM_PROJECT" != "" ]] && [[ ! -d .platform ]]; then
+  printf "✔ Setting remote project to $PLATFORM_PROJECT"
+  yes n | platform project:set-remote $PLATFORM_PROJECT
+fi
+
+
 # And create drush aliases
 if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]]; then
   ([ ! -z "${PLATFORMSH_CLI_TOKEN:-}" ] && platform drush-aliases -r -g ${DDEV_PROJECT} -y) || true
