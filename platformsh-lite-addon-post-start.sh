@@ -24,7 +24,6 @@ if [[ "$PLATFORM_PROJECT" != "" ]] && [[ ! -d .platform ]]; then
   yes n | platform project:set-remote $PLATFORM_PROJECT
 fi
 
-
 # And create drush aliases
 if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]]; then
   ([ ! -z "${PLATFORMSH_CLI_TOKEN:-}" ] && platform drush-aliases -r -g ${DDEV_PROJECT} -y) || true
