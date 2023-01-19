@@ -19,7 +19,7 @@ platform self:install -qy || true
 # Cert load
 ([ ! -z "${PLATFORMSH_CLI_TOKEN:-}" ] && platform ssh-cert:load -y) || true
 
-if [[ "$PLATFORM_PROJECT" != "" ]] && [[ ! -d .platform ]]; then
+if [[ "$PLATFORM_PROJECT" != "" ]] && [[ ! -d .platform/local ]]; then
   printf "✔ Setting remote project to $PLATFORM_PROJECT"
   yes n | platform project:set-remote $PLATFORM_PROJECT
 fi
