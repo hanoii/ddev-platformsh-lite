@@ -23,7 +23,9 @@ if [[ "$PLATFORM_PROJECT" != "" ]] && [[ ! -d .platform/local ]]; then
   printf "* Setting remote project to $PLATFORM_PROJECT...\n"
   platform -y project:set-remote $PLATFORM_PROJECT
 else
-  printf "✗ Platform.sh project was not set, needed for drush aliases. Please set PLATFORM_PROJECT env var.\n"
+  if [[ "$PLATFORM_PROJECT" == "" ]]; then
+    printf "✗ Platform.sh project was not set, needed for drush aliases. Please set PLATFORM_PROJECT env var.\n"
+  fi
 fi
 
 # And create drush aliases, we need to have set remote
