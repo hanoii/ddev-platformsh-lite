@@ -19,11 +19,11 @@ platform self:install -qy || true
 # Cert load
 ([ ! -z "${PLATFORMSH_CLI_TOKEN:-}" ] && platform ssh-cert:load -y) || true
 
-if [[ "$PLATFORM_PROJECT" != "" ]] && [[ ! -d .platform/local ]]; then
-  printf "* Setting remote project to $PLATFORM_PROJECT...\n"
-  platform -y project:set-remote $PLATFORM_PROJECT
-else
-  if [[ "$PLATFORM_PROJECT" == "" ]]; then
+if [[ ! -d .platform/local ]]; then
+  if [[ "$PLATFORM_PROJECT" != "" ]]; then
+    printf "* Setting remote project to $PLATFORM_PROJECT...\n"
+    platform -y project:set-remote $PLATFORM_PROJECT
+  else
     printf "✗ Platform.sh project was not set, needed for drush aliases. Please set PLATFORM_PROJECT env var.\n"
   fi
 fi
