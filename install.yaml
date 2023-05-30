@@ -51,8 +51,10 @@ pre_install_actions:
 # DDEV environment variables can be interpolated into these filenames
 project_files:
 - config.platformsh-lite.yaml
+- docker-compose.platformsh-lite.yaml
 - platformsh-lite-addon-post-start.sh
 - commands/web/platform
+- commands/host/platform:ports
 
 # List of files and directories that are copied into the global .ddev directory
 # DDEV environment variables can be interpolated into these filenames
@@ -65,6 +67,7 @@ post_install_actions:
   - |
     #ddev-description: Adding files to git bypassing default ignore
     git add -f config.platformsh-lite.yaml
+    git add -f docker-compose.platformsh-lite.yaml
     git add -f platformsh-lite-addon-post-start.sh
 
 # - touch somefile.${GOOS}.${DDEV_WEBSERVER}
