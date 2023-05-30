@@ -27,10 +27,10 @@ It:
 
 ### platform tunnel:open
 
-This add-on exposes [two ports](docker-compose.platformsh-lite.yaml) which overs
-a redis and a database services. If you need to expose more ports and do not
-wish to modify/manage this add-on's files you can create `.ddev/.env` file on
-your project with the following:
+This add-on exposes [two ports](docker-compose.platformsh-lite.yaml) (30000 and 30001) 
+which covers a redis and a database services. If you need to expose more ports a
+nd do not wish to modify/manage this add-on's files you can create `.ddev/.env` 
+file on your project with the following:
 
 ```
 # Exposes 30000, 30001, 30002 and 30003
