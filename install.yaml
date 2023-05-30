@@ -66,6 +66,8 @@ global_files:
 post_install_actions:
   - |
     #ddev-description: Adding files to git bypassing default ignore
+    git add -f commands/web/platform
+    git add -f commands/host/platform:ports
     git add -f config.platformsh-lite.yaml
     git add -f docker-compose.platformsh-lite.yaml
     git add -f platformsh-lite-addon-post-start.sh
