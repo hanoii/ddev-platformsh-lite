@@ -41,5 +41,5 @@ In order that multiple projects can run at the same time, a random hosts port
 will be used. To find the mapping ones you can use the following host command:
 
 ```
-$ ddev platform:ports
+ddev platform:ports
 ```` 
