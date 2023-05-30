@@ -9,5 +9,5 @@
 PORTS=$(seq 30000 ${DDEV_PLATFORMSH_LITE_TUNNEL_UPPER_RANGE-30001})
 for i in $PORTS; do
   CONTAINER_PORT=$(~/.ddev/bin/docker-compose -f .ddev/.ddev-docker-compose-full.yaml port web $i)
-  echo "$i -> $CONTAINER_PORT"
+  echo "(local) $CONTAINER_PORT -> (container/tunnel) $i"
 done
