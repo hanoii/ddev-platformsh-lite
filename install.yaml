@@ -9,5 +9,6 @@ project_files:
 
 post_install_actions:
   - |
-    #ddev-description: Remove deprecated command
-    grep -q "#ddev-generated" commands/host/platform:ports && rm commands/host/platform:ports || true
+    #ddev-description: Remove deprecated host command platform ports if untouched
+    [ -f commands/host/platform:ports ] && grep -q "#ddev-gener
+    ated" commands/host/platform:ports && rm commands/host/platform:ports || true
