@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## #ddev-generated
-## Description: Show urls of any platform tunnel open url with host ports.
+## Description: Show urls of any platform tunnel opened url with host ports.
 ## Usage: platform:tunnels
 ## Example: ddev platform:tunnels
 
