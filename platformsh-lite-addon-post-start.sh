@@ -14,7 +14,8 @@ touch $FILENAME
 platform self:update -qy --no-major || true
 
 # Install shell integration to avoid prompt
-platform self:install -qy || true
+# SHELL=$SHELL because of https://github.com/platformsh/cli/issues/117
+SHELL=$SHELL platform self:install -qy || true
 
 # Cert load
 ([ ! -z "${PLATFORMSH_CLI_TOKEN:-}" ] && platform ssh-cert:load -y) || true
