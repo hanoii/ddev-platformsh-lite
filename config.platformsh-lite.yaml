@@ -23,4 +23,4 @@ hooks:
     # For drupal/drush it's recommended to be added after
     # - composer: install
     #
-    - exec: 'bash /var/www/html/.ddev/platformsh-lite-addon-post-start.sh'
+    - exec: 'bash /var/www/html/.ddev/platformsh-lite/post-start.sh'
