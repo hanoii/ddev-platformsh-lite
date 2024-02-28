@@ -3,12 +3,52 @@ name: platformsh-lite
 project_files:
 - config.platformsh-lite.yaml
 - docker-compose.platformsh-lite.yaml
-- platformsh-lite-addon-post-start.sh
+- platformsh-lite/check-platformsh-cli-token.sh
+- platformsh-lite/post-start.sh
 - commands/web/platform
 - commands/host/platform:tunnels
 
+pre_install_actions:
+  # Some of these actions taken from https://github.com/ddev/ddev-platformsh
+  # Get PLATFORM_PROJECT from user if we don't have it yet
+  - |
+    #ddev-nodisplay
+    # echo 'list ddevprojectconfig.web_environment={{ list .DdevProjectConfig.web_environment | toString }}'
+    if ({{ contains "PLATFORM_PROJECT=" (list .DdevProjectConfig.web_environment | toString) }} ); then
+      echo "Using existing PLATFORM_PROJECT from project config.yaml."
+    else
+      printf "\n\nPlease enter your platform.sh project ID (like '6k4ypl5iendqd'): "
+    fi
+
+  - |
+    #ddev-description:Set PLATFORM_PROJECT
+    if !( {{ contains "PLATFORM_PROJECT" (list .DdevProjectConfig.web_environment | toString) }} ); then
+      read platform_project
+      echo "platform_project = '${platform_project}'"
+      # Put the platform_project in to the project's web environment
+      ddev config --web-environment-add PLATFORM_PROJECT=${platform_project}
+      echo "PLATFORM_PROJECT set to ${platform_project}"
+    fi
+
 post_install_actions:
   - |
-    #ddev-description: Remove deprecated host command platform ports if untouched
-    [ -f commands/host/platform:ports ] && grep -q "#ddev-gener
-    ated" commands/host/platform:ports && rm commands/host/platform:ports || true
+    #ddev-description: Remove deprecated host command platform ports
+    remove_file="commands/host/platform:ports"
+    if [ -f "$remove_file" ]; then
+      if grep '#ddev-generated' "$remove_file"; then
+        rm "$remove_file"
+      else
+        echo "Existing "$remove_file" does not have #ddev-generated, so can't be removed"
+      fi
+    fi
+  - |
+    #ddev-description: Remove ./.ddev/platformsh-lite-addon-post-start.sh, it was moved/renamed
+    remove_file="platformsh-lite-addon-post-start.sh"
+    if [ -f "$remove_file" ]; then
+      if grep '#ddev-generated' "$remove_file"; then
+        rm "$remove_file"
+      else
+        echo "Existing "$remove_file" does not have #ddev-generated, so can't be removed."
+        echo "A new file was installed to platformsh-lite/post-start.sh, review the differences, update and remove manually."
+      fi
+    fi
