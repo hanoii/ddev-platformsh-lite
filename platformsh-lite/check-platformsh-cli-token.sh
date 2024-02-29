@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #ddev-generated
 
-ddev debug compose-config | grep -E 'PLATFORMSH_CLI_TOKEN: .{3,}'
+ddev debug compose-config | grep -qE 'PLATFORMSH_CLI_TOKEN: .{3,}'
 
 if [ $? -ne 0 ]; then
   echo ""
