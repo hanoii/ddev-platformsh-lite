@@ -1,0 +1,4 @@
+#add-on tests files
+*.sql
+*.sql.gz
+.platform.app.yaml

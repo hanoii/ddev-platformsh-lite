@@ -3,8 +3,13 @@ name: platformsh-lite
 project_files:
 - config.platformsh-lite.yaml
 - docker-compose.platformsh-lite.yaml
-- platformsh-lite/check-platformsh-cli-token.sh
-- platformsh-lite/post-start.sh
+- platformsh-lite/.ahoy.platformsh-lite.yml
+- platformsh-lite/.ahoy.ifnotpresent.yml
+- platformsh-lite/scripts/check-platformsh-cli-token.sh
+- platformsh-lite/scripts/db-pull.sh
+- platformsh-lite/hooks/post-start.sh
+- platformsh-lite/hooks/post-import-db.sh
+- platformsh-lite/hooks/post-import-db.d
 - commands/web/platform
 - commands/host/platform:tunnels
 
@@ -51,3 +56,6 @@ post_install_actions:
         echo "A new file was installed to platformsh-lite/post-start.sh, review the differences, update and remove manually."
       fi
     fi
+# List of add-on names that this add-on depends on
+dependencies:
+  - pimp-my-shell

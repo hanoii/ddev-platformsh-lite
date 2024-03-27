@@ -1,0 +1,12 @@
+#ddev-generated
+webimage_extra_packages:
+  - bash-completion
+  - boxes
+  - bsdmainutils
+  - build-essential
+  - kitty-terminfo
+  - libarchive-tools
+  - lua5.4
+  - pv
+web_environment:
+  - COLORTERM=${COLORTERM}

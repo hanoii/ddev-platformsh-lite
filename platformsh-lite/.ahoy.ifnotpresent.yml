@@ -1,6 +1,7 @@
+#ddev-generated - This file was copied by ddev-platformsh-lite add-on
+# You can remove these comments if on your project root
 ahoyapi: v2
 commands:
-
   platform:
     usage: 'Platform commands'
     imports:

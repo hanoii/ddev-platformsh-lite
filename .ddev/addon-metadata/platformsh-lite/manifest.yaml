@@ -1,0 +1,20 @@
+name: platformsh-lite
+repository: .
+version: ""
+dependencies:
+    - pimp-my-shell
+install_date: "2024-03-27T19:41:16-03:00"
+project_files:
+    - config.platformsh-lite.yaml
+    - docker-compose.platformsh-lite.yaml
+    - platformsh-lite/.ahoy.platformsh-lite.yml
+    - platformsh-lite/.ahoy.ifnotpresent.yml
+    - platformsh-lite/scripts/check-platformsh-cli-token.sh
+    - platformsh-lite/scripts/db-pull.sh
+    - platformsh-lite/hooks/post-start.sh
+    - platformsh-lite/hooks/post-import-db.sh
+    - platformsh-lite/hooks/post-import-db.d
+    - commands/web/platform
+    - commands/host/platform:tunnels
+global_files: []
+removal_actions: []
