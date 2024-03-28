@@ -3,6 +3,7 @@ name: platformsh-lite
 project_files:
 - config.platformsh-lite.yaml
 - docker-compose.platformsh-lite.yaml
+- platformsh-lite/.gitignore
 - platformsh-lite/.ahoy.platformsh-lite.yml
 - platformsh-lite/.ahoy.ifnotpresent.yml
 - platformsh-lite/scripts/check-platformsh-cli-token.sh

@@ -21,7 +21,7 @@ if [[ ! -f $env_file ]]; then
   # detect defaults
   environment=$(gum spin --show-output --title="Detecting production environment" -- platform environments --type=production --pipe)
   app=$(gum choose --select-if-one --header="Choose default app to pull database from..." $(gum spin --show-output --title="Querying apps..." -- platform apps --format=plain --no-header --columns=name,type | tr '\t' '|') | sed 's/|.*//')
-  relationship=$(gum choose --select-if-one --header="Choose default relationship to pull database from..." $(gum spin --show-output --title="Querying relationships..." -- platform environment:relationships ${1-main} -A drupal | yq '. | to_entries | sort_by(.key) | .[] | .value[0].key = .key | .value | select( .[].service == "db") | .[].key'))
+  relationship=$(gum choose --select-if-one --header="Choose default relationship to pull database from..." $(gum spin --show-output --title="Querying relationships..." -- platform environment:relationships -A $app -e $environment | yq '. | to_entries | sort_by(.key) | .[] | .value[0].key = .key | .value | select( .[].scheme == "mysql" or .[].scheme == "pgsql") | .[].key'))
 
   printf "%s\n" "DDEV_PLATFORMSH_LITE_PRODUCTION_BRANCH=$environment" "DDEV_PLATFORMSH_LITE_DEFAULT_APP=$app" "DDEV_PLATFORMSH_LITE_DEFAULT_RELATIONSHIP=$relationship" > $env_file
 else
