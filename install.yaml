@@ -8,8 +8,7 @@ project_files:
 - platformsh-lite/scripts/check-platformsh-cli-token.sh
 - platformsh-lite/scripts/db-pull.sh
 - platformsh-lite/hooks/post-start.sh
-- platformsh-lite/hooks/post-import-db.sh
-- platformsh-lite/hooks/post-import-db.d
+- pimp-my-shell/hooks/post-import-db.d
 - commands/web/platform
 - commands/host/platform:tunnels
 

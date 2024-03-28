@@ -88,5 +88,5 @@ pv $filename | gunzip | mysql
 
 if [ -n "$post_import" ]; then
   # Run all post-import-db scripts
-  /var/www/html/.ddev/platformsh-lite/hooks/post-import-db.sh
+  /var/www/html/.ddev/pimp-my-shell/hooks/post-import-db.sh
 fi

@@ -24,5 +24,3 @@ hooks:
     # - composer: install
     #
     - exec: /var/www/html/.ddev/platformsh-lite/hooks/post-start.sh
-  post-import-db:
-    - exec: /var/www/html/.ddev/platformsh-lite/hooks/post-import-db.sh
