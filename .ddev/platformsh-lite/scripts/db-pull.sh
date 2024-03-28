@@ -19,9 +19,18 @@ if [[ ! -f $env_file ]]; then
   gum log --level warn "First time running this command, querying platform for defaults..."
 
   # detect defaults
-  environment=$(gum spin --show-output --title="Detecting production environment" -- platform environments --type=production --pipe)
-  app=$(gum choose --select-if-one --header="Choose default app to pull database from..." $(gum spin --show-output --title="Querying apps..." -- platform apps --format=plain --no-header --columns=name,type | tr '\t' '|') | sed 's/|.*//')
-  relationship=$(gum choose --select-if-one --header="Choose default relationship to pull database from..." $(gum spin --show-output --title="Querying relationships..." -- platform environment:relationships -A $app -e $environment | yq '. | to_entries | sort_by(.key) | .[] | .value[0].key = .key | .value | select( .[].scheme == "mysql" or .[].scheme == "pgsql") | .[].key'))
+  if ! environment=$(gum spin --show-output --title="Detecting production environment" -- platform environments --type=production --pipe); then
+    gum log --level error "Detecting platform production environment"
+    exit 1
+  fi
+  if ! app=$(gum choose --select-if-one --header="Choose default app to pull database from..." $(gum spin --show-output --title="Querying apps..." -- platform apps -e $environment --format=plain --no-header --columns=name,type | tr '\t' '|') | sed 's/|.*//'); then
+    gum log --level error --structured "Detecting platform applications" environment $environment
+    exit 1
+  fi
+  if ! relationship=$(gum choose --select-if-one --header="Choose default relationship to pull database from..." $(gum spin --show-output --title="Querying relationships..." -- platform environment:relationships -A $app -e $environment | yq '. | to_entries | sort_by(.key) | .[] | .value[0].key = .key | .value | select( .[].scheme == "mysql" or .[].scheme == "pgsql") | .[].key')); then
+    gum log --level error --structured "Detecting database relationship" app $app environment $environment
+    exit 1
+  fi
 
   printf "%s\n" "DDEV_PLATFORMSH_LITE_PRODUCTION_BRANCH=$environment" "DDEV_PLATFORMSH_LITE_DEFAULT_APP=$app" "DDEV_PLATFORMSH_LITE_DEFAULT_RELATIONSHIP=$relationship" > $env_file
 else
