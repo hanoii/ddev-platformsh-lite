@@ -3,7 +3,7 @@ repository: .
 version: ""
 dependencies:
     - pimp-my-shell
-install_date: "2024-03-28T16:02:21-03:00"
+install_date: "2024-04-14T19:41:09-03:00"
 project_files:
     - config.platformsh-lite.yaml
     - docker-compose.platformsh-lite.yaml

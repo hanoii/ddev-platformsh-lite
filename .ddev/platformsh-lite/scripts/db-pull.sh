@@ -13,7 +13,17 @@ Usage: ${DDEV_PLATFORMSH_LITE_HELP_CMD-$0} [options]
 EOM
 )
 
-env_file=/var/www/html/.ddev/platformsh-lite/.env
+env_file=/var/www/html/.ddev/platformsh-lite/.env.v1
+
+while getopts ":r" option; do
+  case ${option} in
+    r)
+      [[ -f $env_file ]] && rm $env_file
+      ;;
+  esac
+done
+# Resetting OPTIND so that getopts can be used afterwards again
+OPTIND=1
 
 if [[ ! -f $env_file ]]; then
   gum log --level warn "First time running this command, querying platform for defaults..."
@@ -27,28 +37,33 @@ if [[ ! -f $env_file ]]; then
     gum log --level error --structured "Detecting platform applications" environment $environment
     exit 1
   fi
-  if ! relationship=$(gum choose --select-if-one --header="Choose default relationship to pull database from..." $(gum spin --show-output --title="Querying relationships..." -- platform environment:relationships -A $app -e $environment | yq '. | to_entries | sort_by(.key) | .[] | .value[0].key = .key | .value | select( .[].scheme == "mysql" or .[].scheme == "pgsql") | .[].key')); then
+  relationships_yml=$(gum spin --show-output --title="Querying relationships..." -- platform environment:relationships -A $app -e $environment)
+  relationships_cnt=$(echo "$relationships_yml" | yq '[ . | to_entries | sort_by(.key) | .[] | .value[0].key = .key | .value | select( .[].scheme == "mysql" or .[].scheme == "pgsql")] | length')
+  relationships=$(echo "$relationships_yml" | yq '. | to_entries | sort_by(.key) | .[] | .value[0].key = .key | .value | select( .[].scheme == "mysql" or .[].scheme == "pgsql") | .[].key')
+  if ! relationship=$(gum filter --no-limit --select-if-one --header="Choose default relationship to pull database from..." $relationships); then
     gum log --level error --structured "Detecting database relationship" app $app environment $environment
     exit 1
   fi
 
-  printf "%s\n" "DDEV_PLATFORMSH_LITE_PRODUCTION_BRANCH=$environment" "DDEV_PLATFORMSH_LITE_DEFAULT_APP=$app" "DDEV_PLATFORMSH_LITE_DEFAULT_RELATIONSHIP=$relationship" > $env_file
+  printf "%s\n" "DDEV_PLATFORMSH_LITE_PRODUCTION_BRANCH=$environment" "DDEV_PLATFORMSH_LITE_DEFAULT_APP=$app" "DDEV_PLATFORMSH_LITE_DEFAULT_RELATIONSHIP=$relationship" "DDEV_PLATFORMSH_LITE_DEFAULT_RELATIONSHIP_CNT=$relationships_cnt" > $env_file
 else
   gum log --level debug --structured "Reading defaults from env file" file $env_file
   . $env_file
   environment=$DDEV_PLATFORMSH_LITE_PRODUCTION_BRANCH
   app=$DDEV_PLATFORMSH_LITE_DEFAULT_APP
   relationship=$DDEV_PLATFORMSH_LITE_DEFAULT_RELATIONSHIP
+  relationships_cnt=$DDEV_PLATFORMSH_LITE_DEFAULT_RELATIONSHIP_CNT
 fi
 
 gum log --level info Production environment: $environment
 gum log --level info Default App: $app
-gum log --level info Default relationship: $relationship
+gum log --level info "Default relationship: $relationship (total relationships: $relationships_cnt)"
 
 cmd_environment="-e $environment"
 download=true
 post_import=true
-while getopts ":hne:o" option; do
+
+while getopts ":hne:or" option; do
   case ${option} in
     h)
       echo "$USAGE"
@@ -64,6 +79,8 @@ while getopts ":hne:o" option; do
     o)
       post_import=
       ;;
+    r)
+      ;;
     :)
       echo -e "\033[1;31m[error] -${OPTARG} requires an argument.\033[0m"
       echo "$USAGE"
@@ -78,11 +95,11 @@ while getopts ":hne:o" option; do
 done
 shift $((OPTIND-1))
 
-filename=dump-$environment.sql.gz
+filename=dump-$relationship-$environment.sql.gz
 
 if [[ "$download" == "true"  ]]; then
   echo "Fetching database to $filename..."
-  if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]] || [[ "$DDEV_BROOKSDIGITAL_PROJECT_TYPE" == *"drupal"* ]]; then
+  if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]] || [[ "$DDEV_BROOKSDIGITAL_PROJECT_TYPE" == *"drupal"* ]] && [[ $relationships_cnt -eq 1 ]]; then
     platform -y drush -A $app $cmd_environment -- sql-dump --gzip --structure-tables-list=${DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE-cache*,watchdog,search*} --gzip > $filename
   else
     platform -y db:dump -A $app -r $relationship $cmd_environment --gzip -f $filename
