@@ -6,10 +6,11 @@ USAGE=$(cat << EOM
 
 Usage: ${DDEV_PLATFORMSH_LITE_HELP_CMD-$0} [options]
 
-  -h                This help text
-  -e ENVIRONMENT    Use a different environment to download/import database
+  -h                This help text.
+  -r                Reset default values as if run for the first time.
+  -e ENVIRONMENT    Use a different environment to download/import database.
   -n                Do not download, expect the dump to be already downloaded.
-  -o                Import only, do not run post-import-db hooks
+  -o                Import only, do not run post-import-db hooks.
 EOM
 )
 
