@@ -123,7 +123,7 @@ if [[ "$download" == "true"  ]]; then
 
   cmd_structure_tables=
   cmd_exclude_tables=
-  rm $filename
+  rm -f $filename
   if [[ -n "$structure_tables" ]]; then
     IFS=',' read -r -a structure_tables_array <<< "$structure_tables"
     for t in "${structure_tables_array[@]}"; do
@@ -133,6 +133,9 @@ if [[ "$download" == "true"  ]]; then
     platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_structure_tables --schema-only --gzip -o > $filename
   fi
   platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_exclude_tables --gzip -o >> $filename
+else
+  gum log --level error "Dump ${filename} not found. Please run it without -n."
+  exit 3
 fi
 
 # Here we use the mysql database otherwise mysql alone will
