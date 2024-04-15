@@ -108,7 +108,7 @@ if [[ "$download" == "true"  ]]; then
   else
     if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]] || [[ "$DDEV_BROOKSDIGITAL_PROJECT_TYPE" == *"drupal"* ]]; then
       if [[ "$relationship_scheme" == "mysql" ]]; then
-        structure_tables=$(gum spin --show-output --title="Drupal project type, finding schema only tables..." -- platform -y db:sql -A $app -r ${relationship_name} $cmd_environment "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE 'cache%' OR TABLE_NAME LIKE 'watchdog' ORDER BY TABLE_NAME" --raw | awk 'FNR > 1 {print}' | sed -z 's/\n/,/g' | sed 's/,$//')
+        structure_tables=$(gum spin --show-output --title="Drupal project type, finding schema only tables..." -- platform -y db:sql -A $app -r ${relationship_name} $cmd_environment "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND (TABLE_NAME LIKE 'cache%' OR TABLE_NAME LIKE 'watchdog') ORDER BY TABLE_NAME" --raw | awk 'FNR > 1 {print}' | sed -z 's/\n/,/g' | sed 's/,$//')
         gum log --level debug "Schema only tables: $structure_tables"
       else
         gum log --level error "Database scheme ${relationship_scheme} not currently supported."
