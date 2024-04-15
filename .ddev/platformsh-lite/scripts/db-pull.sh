@@ -6,10 +6,11 @@ USAGE=$(cat << EOM
 
 Usage: ${DDEV_PLATFORMSH_LITE_HELP_CMD-$0} [options]
 
-  -h                This help text
-  -e ENVIRONMENT    Use a different environment to download/import database
+  -h                This help text.
+  -r                Reset default values as if run for the first time.
+  -e ENVIRONMENT    Use a different environment to download/import database.
   -n                Do not download, expect the dump to be already downloaded.
-  -o                Import only, do not run post-import-db hooks
+  -o                Import only, do not run post-import-db hooks.
 EOM
 )
 
@@ -103,33 +104,35 @@ filename=dump-${relationship_name}-$environment.sql.gz
 
 if [[ "$download" == "true"  ]]; then
   echo "Fetching database to $filename..."
-  if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]] || [[ "$DDEV_BROOKSDIGITAL_PROJECT_TYPE" == *"drupal"* ]]; then
-    # platform -y drush -A $app $cmd_environment -- sql-dump --gzip --structure-tables-list=${DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE-cache*,watchdog,search*} --gzip > $filename
-    if [[ "$relationship_scheme" == "mysql" ]]; then
-      if [ -z "$DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE" ]; then
+  if [ ! -z ${DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE+x} ]; then
+    structure_tables=$DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE
+  else
+    if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]] || [[ "$DDEV_BROOKSDIGITAL_PROJECT_TYPE" == *"drupal"* ]]; then
+      gum log --level info "Drupal project type, getting schema only of common tables."
+
+      if [[ "$relationship_scheme" == "mysql" ]]; then
         structure_tables_cache=$(platform -y db:sql -A $app -r ${relationship_name} $cmd_environment "SHOW TABLES LIKE 'cache%'" --raw | awk 'FNR > 1 {print}' | sed -z 's/\n/,/g' | sed 's/,$//')
         structure_tables="${structure_tables_cache},watchdog"
+        gum log --level debug "Schema only tables: $structure_tables"
       else
-        structure_tables=$DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE
+        gum log --level error "Database scheme ${relationship_scheme} not currently supported."
+        exit 2
       fi
-      cmd_structure_tables=
-      cmd_exclude_tables=
-      if [[ -n "$structure_tables" ]]; then
-        IFS=',' read -r -a structure_tables_array <<< "$structure_tables"
-        for t in "${structure_tables_array[@]}"; do
-          cmd_structure_tables+="--table=$t "
-          cmd_exclude_tables+="--exclude-table=$t "
-        done
-        platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_structure_tables --schema-only --gzip -o > $filename
-      fi
-      platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_exclude_tables --gzip -o >> $filename
-    else
-      gum log --level error "Database scheme ${relationship_scheme} not currently supported."
-      exit 2
     fi
-  else
-    platform -y db:dump -A $app -r ${relationship_name} $cmd_environment --gzip -f $filename
   fi
+
+  cmd_structure_tables=
+  cmd_exclude_tables=
+  rm $filename
+  if [[ -n "$structure_tables" ]]; then
+    IFS=',' read -r -a structure_tables_array <<< "$structure_tables"
+    for t in "${structure_tables_array[@]}"; do
+      cmd_structure_tables+="--table=$t "
+      cmd_exclude_tables+="--exclude-table=$t "
+    done
+    platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_structure_tables --schema-only --gzip -o > $filename
+  fi
+  platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_exclude_tables --gzip -o >> $filename
 fi
 
 # Here we use the mysql database otherwise mysql alone will
