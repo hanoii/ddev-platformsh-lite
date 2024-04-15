@@ -103,15 +103,12 @@ shift $((OPTIND-1))
 filename=dump-${relationship_name}-$environment.sql.gz
 
 if [[ "$download" == "true"  ]]; then
-  echo "Fetching database to $filename..."
   if [ ! -z ${DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE+x} ]; then
     structure_tables=$DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE
   else
     if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]] || [[ "$DDEV_BROOKSDIGITAL_PROJECT_TYPE" == *"drupal"* ]]; then
-      gum log --level info "Drupal project type, getting schema only of common tables."
-
       if [[ "$relationship_scheme" == "mysql" ]]; then
-        structure_tables=$(platform -y db:sql -A $app -r ${relationship_name} $cmd_environment "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE 'cache%' OR TABLE_NAME LIKE 'watchdog'" --raw | awk 'FNR > 1 {print}' | sed -z 's/\n/,/g' | sed 's/,$//')
+        structure_tables=$(gum spin --show-output --title="Drupal project type, finding schema only tables..." -- platform -y db:sql -A $app -r ${relationship_name} $cmd_environment "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE 'cache%' OR TABLE_NAME LIKE 'watchdog' ORDER BY TABLE_NAME" --raw | awk 'FNR > 1 {print}' | sed -z 's/\n/,/g' | sed 's/,$//')
         gum log --level debug "Schema only tables: $structure_tables"
       else
         gum log --level error "Database scheme ${relationship_scheme} not currently supported."
@@ -120,18 +117,21 @@ if [[ "$download" == "true"  ]]; then
     fi
   fi
 
+
   cmd_structure_tables=
   cmd_exclude_tables=
-  rm -f $filename
   if [[ -n "$structure_tables" ]]; then
     IFS=',' read -r -a structure_tables_array <<< "$structure_tables"
     for t in "${structure_tables_array[@]}"; do
       cmd_structure_tables+="--table=$t "
       cmd_exclude_tables+="--exclude-table=$t "
     done
-    platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_structure_tables --schema-only --gzip -o > $filename
+    temp_filename=$(mktemp)
+    gum spin --show-output --title="Dumping schema only tables..." -- platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_structure_tables --schema-only --gzip -o > $temp_filename
   fi
-  platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_exclude_tables --gzip -o >> $filename
+  gum spin --show-output --title="Dumping data tables..." -- platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_exclude_tables --gzip -o >> $temp_filename
+  rm -f $filename
+  mv $temp_filename $filename
 else
   if [ ! -f $filename ]; then
     gum log --level error "Dump ${filename} not found. Please run it without -n."
