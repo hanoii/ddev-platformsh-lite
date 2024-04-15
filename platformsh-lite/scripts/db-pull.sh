@@ -111,8 +111,7 @@ if [[ "$download" == "true"  ]]; then
       gum log --level info "Drupal project type, getting schema only of common tables."
 
       if [[ "$relationship_scheme" == "mysql" ]]; then
-        structure_tables_cache=$(platform -y db:sql -A $app -r ${relationship_name} $cmd_environment "SHOW TABLES LIKE 'cache%'" --raw | awk 'FNR > 1 {print}' | sed -z 's/\n/,/g' | sed 's/,$//')
-        structure_tables="${structure_tables_cache},watchdog"
+        structure_tables=$(platform -y db:sql -A $app -r ${relationship_name} $cmd_environment "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME LIKE 'cache%' OR TABLE_NAME LIKE 'watchdog'" --raw | awk 'FNR > 1 {print}' | sed -z 's/\n/,/g' | sed 's/,$//')
         gum log --level debug "Schema only tables: $structure_tables"
       else
         gum log --level error "Database scheme ${relationship_scheme} not currently supported."
