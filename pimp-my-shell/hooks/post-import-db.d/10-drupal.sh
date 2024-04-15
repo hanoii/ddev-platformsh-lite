@@ -2,7 +2,6 @@
 #!/bin/bash
 set -e -o pipefail
 
-gum log --level info "Running $0..."
 if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]]; then
   if ! $(drush > /dev/null 2>&1); then
     gum log --level error "drush not found, if this is a fresh init/clone, maybe run 'composer install'"

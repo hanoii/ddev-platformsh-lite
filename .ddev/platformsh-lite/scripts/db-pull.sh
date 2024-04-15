@@ -13,7 +13,7 @@ Usage: ${DDEV_PLATFORMSH_LITE_HELP_CMD-$0} [options]
 EOM
 )
 
-env_file=/var/www/html/.ddev/platformsh-lite/.env.v1
+env_file=/var/www/html/.ddev/platformsh-lite/.env.v2
 
 while getopts ":r" option; do
   case ${option} in
@@ -39,7 +39,7 @@ if [[ ! -f $env_file ]]; then
   fi
   relationships_yml=$(gum spin --show-output --title="Querying relationships..." -- platform environment:relationships -A $app -e $environment)
   relationships_cnt=$(echo "$relationships_yml" | yq '[ . | to_entries | sort_by(.key) | .[] | .value[0].key = .key | .value | select( .[].scheme == "mysql" or .[].scheme == "pgsql")] | length')
-  relationships=$(echo "$relationships_yml" | yq '. | to_entries | sort_by(.key) | .[] | .value[0].key = .key | .value | select( .[].scheme == "mysql" or .[].scheme == "pgsql") | .[].key')
+  relationships=$(echo "$relationships_yml" | yq '. | to_entries | sort_by(.key) | .[] | .value[0].key = .key | .value | select( .[].scheme == "mysql" or .[].scheme == "pgsql") | .[].key + "/" + .[].scheme')
   if ! relationship=$(gum filter --no-limit --select-if-one --header="Choose default relationship to pull database from..." $relationships); then
     gum log --level error --structured "Detecting database relationship" app $app environment $environment
     exit 1
@@ -58,6 +58,10 @@ fi
 gum log --level info Production environment: $environment
 gum log --level info Default App: $app
 gum log --level info "Default relationship: $relationship (total relationships: $relationships_cnt)"
+
+relationship_array=(${relationship//\// })
+relationship_name=${relationship_array[0]}
+relationship_scheme=${relationship_array[1]}
 
 cmd_environment="-e $environment"
 download=true
@@ -95,14 +99,36 @@ while getopts ":hne:or" option; do
 done
 shift $((OPTIND-1))
 
-filename=dump-$relationship-$environment.sql.gz
+filename=dump-${relationship_name}-$environment.sql.gz
 
 if [[ "$download" == "true"  ]]; then
   echo "Fetching database to $filename..."
-  if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]] || [[ "$DDEV_BROOKSDIGITAL_PROJECT_TYPE" == *"drupal"* ]] && [[ $relationships_cnt -eq 1 ]]; then
-    platform -y drush -A $app $cmd_environment -- sql-dump --gzip --structure-tables-list=${DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE-cache*,watchdog,search*} --gzip > $filename
+  if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]] || [[ "$DDEV_BROOKSDIGITAL_PROJECT_TYPE" == *"drupal"* ]]; then
+    # platform -y drush -A $app $cmd_environment -- sql-dump --gzip --structure-tables-list=${DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE-cache*,watchdog,search*} --gzip > $filename
+    if [[ "$relationship_scheme" == "mysql" ]]; then
+      if [ -z "$DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE" ]; then
+        structure_tables_cache=$(platform -y db:sql -A $app -r ${relationship_name} $cmd_environment "SHOW TABLES LIKE 'cache%'" --raw | awk 'FNR > 1 {print}' | sed -z 's/\n/,/g' | sed 's/,$//')
+        structure_tables="${structure_tables_cache},watchdog"
+      else
+        structure_tables=$DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE
+      fi
+      cmd_structure_tables=
+      cmd_exclude_tables=
+      if [[ -n "$structure_tables" ]]; then
+        IFS=',' read -r -a structure_tables_array <<< "$structure_tables"
+        for t in "${structure_tables_array[@]}"; do
+          cmd_structure_tables+="--table=$t "
+          cmd_exclude_tables+="--exclude-table=$t "
+        done
+        platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_structure_tables --schema-only --gzip -o > $filename
+      fi
+      platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_exclude_tables --gzip -o >> $filename
+    else
+      gum log --level error "Database scheme ${relationship_scheme} not currently supported."
+      exit 2
+    fi
   else
-    platform -y db:dump -A $app -r $relationship $cmd_environment --gzip -f $filename
+    platform -y db:dump -A $app -r ${relationship_name} $cmd_environment --gzip -f $filename
   fi
 fi
 
@@ -114,5 +140,5 @@ pv $filename | gunzip | mysql
 
 if [ -n "$post_import" ]; then
   # Run all post-import-db scripts
-  /var/www/html/.ddev/pimp-my-shell/hooks/post-import-db.sh
+  /var/www/html/.ddev/pimp-my-shell/hooks/post-import-db.sh -A $app -r ${relationship_name} $cmd_environment
 fi
