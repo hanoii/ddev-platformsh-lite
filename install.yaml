@@ -58,16 +58,17 @@ post_install_actions:
       fi
     fi
   - |
-    #ddev-description: Rename ./.ddev/pimp-my-shell/post-import-db.d/00-drupal.sh to 10-drupal.sh
-    rename_file="pimp-my-shell/post-import-db.d/00-drupal.sh"
-    if [ -f "$rename_file" ]; then
-      if grep '#ddev-generated' "$rename_file"; then
-        mv "$rename_file" pimp-my-shell/post-import-db.d/10-drupal.sh
+    #ddev-description: Remove ./.ddev/pimp-my-shell/hooks/post-import-db.d/00-drupal.sh, it was moved/renamed
+    remove_file="pimp-my-shell/hooks/post-import-db.d/00-drupal.sh"
+    if [ -f "$remove_file" ]; then
+      if grep '#ddev-generated' "$remove_file"; then
+        rm "$remove_file"
       else
-        echo "Existing "$rename_file" does not have #ddev-generated, so can't be removed."
-        echo "A new file was installed pimp-my-shell/post-import-db.d/10-drupal.sh, review the differences, update and remove manually."
+        echo "Existing "$remove_file" does not have #ddev-generated, so can't be removed."
+        echo "A new file was installed to platformsh-lite/post-import-db.d/10-drupal.sh, review the differences, update and remove manually."
       fi
     fi
+
 # List of add-on names that this add-on depends on
 dependencies:
   - pimp-my-shell
