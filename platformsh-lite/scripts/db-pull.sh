@@ -133,8 +133,10 @@ if [[ "$download" == "true"  ]]; then
   fi
   platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_exclude_tables --gzip -o >> $filename
 else
-  gum log --level error "Dump ${filename} not found. Please run it without -n."
-  exit 3
+  if [ ! -f $filename ]; then
+    gum log --level error "Dump ${filename} not found. Please run it without -n."
+    exit 3
+  fi
 fi
 
 # Here we use the mysql database otherwise mysql alone will
