@@ -18,7 +18,7 @@ function print_help() {
   gum style --border "rounded" --margin "1 2" --padding "1 2" "$@" "$USAGE"
 }
 
-env_file=/var/www/html/.ddev/platformsh-lite/.env.v2
+env_file=/var/www/html/.ddev/platformsh-lite/.env.v3
 
 while getopts ":rh" option; do
   case ${option} in
