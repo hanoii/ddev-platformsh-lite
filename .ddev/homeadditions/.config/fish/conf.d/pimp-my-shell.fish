@@ -1,5 +1,8 @@
 #ddev-generated
 
+# PATH
+fish_add_path /usr/games
+
 # z.lua
 mkdir -p /mnt/ddev-global-cache/z.lua/$HOSTNAME
 set -x _ZL_DATA /mnt/ddev-global-cache/z.lua/$HOSTNAME/.zlua
@@ -21,7 +24,13 @@ end
 function fish_title
   set --local title "$DDEV_PROJECT/ddev: "(fish_prompt_pwd_dir_length=1 prompt_pwd)
   if count $argv > /dev/null
-    set title "$title - $argv"
+    set title "$argv - $title"
   end
   echo $title
+end
+
+# A helper env var to be used from bash scripts
+set -x IS_FISH_SHELL 1
+if status --is-interactive
+  set -x IS_FISH_INTERACTIVE_SHELL 1
 end
