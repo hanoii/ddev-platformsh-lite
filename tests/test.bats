@@ -9,6 +9,7 @@ setup() {
   cd "${TESTDIR}"
   git init .
   ddev config --project-name=${PROJNAME} --project-type=php --web-environment-add=PLATFORMSH_CLI_TOKEN=notokenrightnow,PLATFORM_PROJECT=notyet
+  ddev get hanoii/ddev-pimp-my-shell
   ddev start -y >/dev/null
 }
 
