@@ -1,5 +1,12 @@
 [![tests](https://github.com/hanoii/ddev-platformsh-lite/actions/workflows/tests.yml/badge.svg)](https://github.com/hanoii/ddev-platformsh-lite/actions/workflows/tests.yml)
-![project is maintained](https://img.shields.io/maintenance/yes/2023.svg)
+![project is maintained](https://img.shields.io/maintenance/yes/2024.svg)
+
+<!-- toc -->
+
+- [What is ddev-platformsh-lite?](#what-is-ddev-platformsh-lite)
+- [platform tunnel:open](#platform-tunnelopen)
+
+<!-- tocstop -->
 
 ## What is ddev-platformsh-lite?
 
@@ -34,7 +41,7 @@ Add-on features:
   `ddev platform tunnel:open` (see below)
 - check for existance of needed environment variables
 
-### platform tunnel:open
+## platform tunnel:open
 
 This add-on exposes [two ports](docker-compose.platformsh-lite.yaml) (30000
 and 30001) which covers a redis and a database services. If you need to expose
