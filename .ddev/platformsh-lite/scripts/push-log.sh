@@ -45,7 +45,7 @@ if [[ $choose -eq 1 ]]; then
 else
   PENDING=$(platform activities $cmd_environment --type environment.push --all --state=pending --format=plain --columns=id --no-header 2> /dev/null || true | wc -l)
   state_flag=
-  if [ $PENDING -gt 0 ]; then
+  if [[ "$PENDING" -gt 0 ]]; then
     gum log --level warn "There are still $PENDING pending builds"
     state_flag="--state=in_progress"
   fi
