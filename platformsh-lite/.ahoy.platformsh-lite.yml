@@ -3,7 +3,7 @@ ahoyapi: v2
 commands:
   push:log:
     usage: "See the latest push activity log."
-    cmd: .ddev/platformsh-lite/scripts/push-log.sh "$@"
+    cmd: DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-ahoy platform push:log}" .ddev/platformsh-lite/scripts/push-log.sh "$@"
 
   db:pull:
     usage: "Pull database from the production environment."
