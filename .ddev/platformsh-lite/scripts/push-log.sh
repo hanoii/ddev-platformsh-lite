@@ -41,7 +41,7 @@ done
 OPTIND=1
 
 if [[ $choose -eq 1 ]]; then
-  IFS=$'\n' ACTIVITY=$(gum filter $(platform activities --type=environment.push --format=tsv --no-header $cmd_limit) | awk '{print $1}')
+  IFS=$'\n' ACTIVITY=$(gum filter $(platform activities $cmd_environment --type=environment.push --format=tsv --no-header $cmd_limit) | awk '{print $1}')
 else
   PENDING=$({ platform activities $cmd_environment --type environment.push --all --state=pending --format=plain --columns=id --no-header 2> /dev/null || true; } | wc -l)
   state_flag=
