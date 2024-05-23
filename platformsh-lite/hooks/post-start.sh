@@ -24,7 +24,7 @@ fi
 # Cert load
 ([ ! -z "${PLATFORMSH_CLI_TOKEN:-}" ] && platform ssh-cert:load -y) || true
 
-if [[ ! -d .platform/local ]]; then
+if [[ ! -f .platform/local/project.yaml ]]; then
   if [[ "$PLATFORM_PROJECT" != "" ]]; then
     printf "* Setting remote project to $PLATFORM_PROJECT...\n"
     platform -y project:set-remote $PLATFORM_PROJECT
@@ -34,6 +34,6 @@ if [[ ! -d .platform/local ]]; then
 fi
 
 # And create drush aliases, we need to have set remote
-if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]] && [[ -d .platform/local ]]; then
+if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]] && [[ -f .platform/local/project.yaml ]]; then
   ([ ! -z "${PLATFORMSH_CLI_TOKEN:-}" ] && platform drush-aliases -r -g ${DDEV_PROJECT} -y) || true
 fi
