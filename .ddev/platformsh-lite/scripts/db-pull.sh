@@ -110,7 +110,7 @@ shift $((OPTIND-1))
 
 filename=dump-${relationship_name}-$environment.sql.gz
 
-gum log --level info "Downloading $filename..."
+gum log --level info "Creating $filename..."
 
 if [[ "$download" == "true"  ]]; then
   if [ ! -z ${DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE+x} ]; then
