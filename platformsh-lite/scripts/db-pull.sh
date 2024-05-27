@@ -110,6 +110,8 @@ shift $((OPTIND-1))
 
 filename=dump-${relationship_name}-$environment.sql.gz
 
+gum log --level info "Downloading $filename..."
+
 if [[ "$download" == "true"  ]]; then
   if [ ! -z ${DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE+x} ]; then
     structure_tables=$DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE
@@ -151,7 +153,8 @@ fi
 # fail because 'db' will not be there once dropped.
 mysql -uroot -proot -e 'DROP DATABASE IF EXISTS db' mysql
 mysql -uroot -proot -e 'CREATE DATABASE db' mysql
-pv $filename | gunzip | mysql
+# attempt to remove /*!999999\- enable the sandbox mode */ when available, it appears to be an issue bettween newer clients and older servers of mysql-compatible client/servers.
+pv $filename | gunzip | sed 's/\/\*!999999.*//g' | mysql
 
 if [ -n "$post_import" ]; then
   # Run all post-import-db scripts
