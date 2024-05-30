@@ -137,9 +137,15 @@ if [[ "$download" == "true"  ]]; then
       cmd_exclude_tables+="--exclude-table=$t "
     done
     temp_filename=$(mktemp)
-    gum spin --show-output --title="Dumping schema only tables..." -- platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_structure_tables --schema-only --gzip -o > $temp_filename
+    temp_filename_schema=$(mktemp)
+    temp_filename_data=$(mktemp)
+    gum spin --show-output --title="Dumping schema only tables..." -- platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_structure_tables --schema-only --gzip -o > $temp_filename_schema
   fi
-  gum spin --show-output --title="Dumping data tables..." -- platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_exclude_tables --gzip -o >> $temp_filename
+  gum spin --show-output --title="Dumping data tables..." -- platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_exclude_tables --gzip -o > $temp_filename_data
+  # attempt to remove /*!999999\- enable the sandbox mode */ if there
+  # @see https://mariadb.org/mariadb-dump-file-compatibility-change/
+  cat $temp_filename_schema | gunzip | tail +2 | gzip > $temp_filename
+  cat $temp_filename_data | gunzip | tail +2 | gzip >> $temp_filename
   rm -f $filename
   mv $temp_filename $filename
 else
@@ -153,8 +159,7 @@ fi
 # fail because 'db' will not be there once dropped.
 mysql -uroot -proot -e 'DROP DATABASE IF EXISTS db' mysql
 mysql -uroot -proot -e 'CREATE DATABASE db' mysql
-# attempt to remove /*!999999\- enable the sandbox mode */ when available, it appears to be an issue bettween newer clients and older servers of mysql-compatible client/servers.
-pv $filename | gunzip | sed 's/\/\*!999999.*//g' | mysql
+pv $filename | gunzip | mysql
 
 if [ -n "$post_import" ]; then
   # Run all post-import-db scripts
