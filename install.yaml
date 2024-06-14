@@ -11,7 +11,6 @@ project_files:
 - platformsh-lite/scripts/push-log.sh
 - platformsh-lite/scripts/switch.sh
 - platformsh-lite/hooks/post-start.sh
-- pimp-my-shell/hooks/post-import-db.d
 - commands/web/platform
 - commands/host/platform:tunnels
 
@@ -66,10 +65,6 @@ post_install_actions:
         rm "$remove_file"
       else
         echo "Existing "$remove_file" does not have #ddev-generated, so can't be removed."
-        echo "A new file was installed to platformsh-lite/post-import-db.d/10-drupal.sh, review the differences, update and remove manually."
+        echo "This file is now managed by https://github.com/hanoii/ddev-drupal, please review and update accordingly."
       fi
     fi
-
-# List of add-on names that this add-on depends on
-dependencies:
-  - pimp-my-shell
