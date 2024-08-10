@@ -4,8 +4,8 @@
 RUN wget -q https://github.com/ahoy-cli/ahoy/releases/download/v2.1.1/ahoy-bin-linux-`dpkg --print-architecture` -O - > /usr/local/bin/ahoy && chmod +x /usr/local/bin/ahoy
 
 # fzf et al
-RUN mkdir -p /opt/fzf && cd /opt/fzf && git init && git remote add origin https://github.com/junegunn/fzf.git && git fetch --depth 1 origin 207deeadba2721435a21e0f68c61e522eedef26c && git checkout FETCH_HEAD && /opt/fzf/install --all && cp /root/.fzf.bash /opt
-RUN mkdir -p /opt/fzf-git.sh && cd /opt/fzf-git.sh && git init && git remote add origin https://github.com/junegunn/fzf-git.sh.git && git fetch --depth 1 origin 23a74efafac72b0a131a9f897a5da2fc9bbc04ee && git checkout FETCH_HEAD
+RUN mkdir -p /opt/fzf && cd /opt/fzf && git init && git remote add origin https://github.com/junegunn/fzf.git && git fetch --depth 1 origin 4e85f72f0ee237bef7a1617e0cf8c811a4091d72 && git checkout FETCH_HEAD && /opt/fzf/install --all && cp /root/.fzf.bash /opt
+RUN mkdir -p /opt/fzf-git.sh && cd /opt/fzf-git.sh && git init && git remote add origin https://github.com/junegunn/fzf-git.sh.git && git fetch --depth 1 origin 6df84d71fe8b532b6e1d7c4a754ea6c7c032f553 && git checkout FETCH_HEAD
 
 # bat
 RUN wget -q https://github.com/sharkdp/bat/releases/download/v0.24.0/bat_0.24.0_`dpkg --print-architecture`.deb -O bat.deb &&  dpkg -i bat.deb && rm bat.deb
@@ -14,22 +14,55 @@ RUN wget -q https://github.com/sharkdp/bat/releases/download/v0.24.0/bat_0.24.0_
 RUN mkdir -p /opt/z.lua && wget https://github.com/skywind3000/z.lua/archive/refs/tags/1.8.18.zip -qO- | bsdtar xf - --strip-components=1 -C /opt/z.lua
 
 # starship
-RUN curl -sS https://starship.rs/install.sh | sh -s -- -y -v v1.18.2
+RUN curl -sS https://starship.rs/install.sh | sh -s -- -y -v v1.20.1
 
 # gum
-RUN wget -q https://github.com/charmbracelet/gum/releases/download/v0.14.0/gum_0.14.0_`dpkg --print-architecture`.deb -O gum.deb && dpkg -i gum.deb && rm gum.deb
+RUN wget -q https://github.com/charmbracelet/gum/releases/download/v0.14.3/gum_0.14.3_`dpkg --print-architecture`.deb -O gum.deb && dpkg -i gum.deb && rm gum.deb
 
-# fish
+# apt/repos
+# - fish
+# - eza
 RUN echo "deb http://download.opensuse.org/repositories/shells:/fish:/release:/3/Debian_`lsb_release -rs`/ /" | sudo tee /etc/apt/sources.list.d/shells:fish:release:3.list
 RUN curl -fsSL https://download.opensuse.org/repositories/shells:fish:release:3/Debian_`lsb_release -rs`/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/shells_fish_release_3.gpg > /dev/null
-RUN apt update && apt satisfy -y "fish (>=3.7.1)"
+RUN wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+RUN echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
+RUN chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+RUN apt update && apt satisfy -y "fish (>=3.7.1)" && apt satisfy -y "eza (>=0.18.24)"
+
+##
+# Tools to install under ddev non-root user
+#
 USER $uid:$gid
+
+# Fish plugins
 RUN fish -c "curl -sL 'https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish' | source && fisher install jorgebucaran/fisher@4.4.4"
 RUN \
     fish -c "fisher install IlanCosman/tide@v6.1.1" ; \
     fish -c "fisher install edc/bass@v1.0"
 
+# bun.sh
+RUN curl -fsSL https://bun.sh/install | bash -s "bun-v1.1.22"
+
+# Go back to root
 USER root:root
+
+# kitty-terminfo from unstable, using its snapshot to make sure there's always gonna ver a version
+# this can be updated manually by looking at
+# https://snapshot.debian.org/binary/kitty-terminfo/
+RUN set -eux; \
+    pkg_url="https://snapshot.debian.org/archive/debian/20240501T150311Z/pool/main/k/kitty/kitty-terminfo_0.34.1-1_all.deb"; \
+    mkdir -p /tmp/kitty-terminfo ; \
+    cd /tmp/kitty-terminfo ; \
+    wget -q "$pkg_url" -O kitty-terminfo.deb ; \
+    ar x kitty-terminfo.deb; \
+    tar -xf data.tar.xz; \
+    cp -R usr/share/terminfo/* /usr/share/terminfo; \
+    cd; \
+    rm -fr /tmp/kitty-terminfo;
 
 # vim
 RUN update-alternatives --set editor /usr/bin/vim.nox
+
+# tte
+# https://chrisbuilds.github.io/terminaltexteffects/
+RUN PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install terminaltexteffects==0.11.0
