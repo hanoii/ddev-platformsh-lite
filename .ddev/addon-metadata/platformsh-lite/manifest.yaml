@@ -1,9 +1,7 @@
 name: platformsh-lite
 repository: .
 version: ""
-dependencies:
-    - pimp-my-shell
-install_date: "2024-05-30T11:44:19-03:00"
+install_date: "2024-08-10T11:38:17-03:00"
 project_files:
     - config.platformsh-lite.yaml
     - docker-compose.platformsh-lite.yaml
@@ -15,7 +13,6 @@ project_files:
     - platformsh-lite/scripts/push-log.sh
     - platformsh-lite/scripts/switch.sh
     - platformsh-lite/hooks/post-start.sh
-    - pimp-my-shell/hooks/post-import-db.d
     - commands/web/platform
     - commands/host/platform:tunnels
 global_files: []

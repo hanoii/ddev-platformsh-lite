@@ -41,7 +41,7 @@ if [[ ! -f $env_file ]]; then
 
   # detect defaults
   if ! environment=$(gum spin --show-output --title="Detecting production environment" -- platform environments --type=production --pipe); then
-    gum log --level error "Detecting platform production environment"
+    gum log --level error "Detecting platform production environment, you might want to check your PLATFORMSH_CLI_TOKEN on your config.local.yaml"
     exit 1
   fi
   if ! app=$(gum choose --select-if-one --header="Choose default app to pull database from..." $(gum spin --show-output --title="Querying apps..." -- platform apps -e $environment --format=plain --no-header --columns=name,type | tr '\t' '|') | sed 's/|.*//'); then
