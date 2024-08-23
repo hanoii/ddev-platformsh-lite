@@ -7,6 +7,7 @@ project_files:
 - platformsh-lite/.ahoy.platformsh-lite.yml
 - platformsh-lite/.ahoy.ifnotpresent.yml
 - platformsh-lite/scripts/check-platformsh-cli-token.sh
+- platformsh-lite/scripts/check-valid-platformsh-cli-token.sh
 - platformsh-lite/scripts/db-pull.sh
 - platformsh-lite/scripts/push-log.sh
 - platformsh-lite/scripts/switch.sh
