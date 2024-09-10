@@ -1,7 +1,7 @@
 name: platformsh-lite
 repository: .
 version: ""
-install_date: "2024-08-23T15:36:49-03:00"
+install_date: "2024-09-10T16:01:15-03:00"
 project_files:
     - config.platformsh-lite.yaml
     - docker-compose.platformsh-lite.yaml

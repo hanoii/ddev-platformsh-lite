@@ -25,7 +25,7 @@ if [ ! -z "$PLATFORMSH_CLI_TOKEN" ]; then
   # Cert load
   platform ssh-cert:load -y
 
-  if [[ ! -f .platform/local/project.yaml ]]; then
+  if [[ ! -f .platform/local/project.yaml ]] || [[ ! -s .platform/local/project.yaml ]]; then
     if [[ "$PLATFORM_PROJECT" != "" ]]; then
       printf "* Setting remote project to $PLATFORM_PROJECT...\n"
       platform -y project:set-remote $PLATFORM_PROJECT
