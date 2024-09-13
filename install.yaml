@@ -10,6 +10,7 @@ project_files:
 - platformsh-lite/scripts/check-valid-platformsh-cli-token.sh
 - platformsh-lite/scripts/db-pull.sh
 - platformsh-lite/scripts/push-log.sh
+- platformsh-lite/scripts/storage.sh
 - platformsh-lite/scripts/switch.sh
 - platformsh-lite/hooks/post-start.sh
 - commands/web/platform
