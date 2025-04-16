@@ -33,15 +33,19 @@ web_environment:
 
 Add-on features:
 
-- updates the cli
-- set logical environment variables
-- generate ssh certs for keyless ssh calls
-- add drush aliases if project is drupal
-- exposes two (or more) ports to the host so that so one can use
+- Updates the cli
+- Set logical environment variables
+- Generate ssh certs for keyless ssh calls
+- Add drush aliases if project is drupal
+- Exposes two (or more) ports to the host so that so one can use
   `ddev platform tunnel:open` (see below)
-- check for existance of needed environment variables
-- special ssh key/cert handling (adds certificates to ddev's ssh agent
-  automatically and configures ssh to forward agent keys on platform.sh domains)
+- Check for existance of needed environment variables
+- Special ssh key/cert handling
+  - Adds certificates to ddev's ssh agent automatically
+  - Optionaly configures ssh to forward agent keys on platform.sh domains. If
+    you want need this to happen automatically all the time, please add
+    `DDEV_PLATFORMSH_LITE_SSH_FORWARDAGENT=true` to your project's `config.yaml`
+    or alternatively to `config.local.yaml`
 
 ## platform tunnel:open
 
