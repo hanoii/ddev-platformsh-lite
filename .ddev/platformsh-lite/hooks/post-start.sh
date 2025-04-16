@@ -63,7 +63,7 @@ echo -e "\n# Added by ddev-platformsh-lite add-on on $(date -u "+%Y-%m-%d %H:%m"
 
 # Remove key/cert
 cat <<'SSH_CONFIG' > ~/.ssh/config.platformsh-lite.pre.d/config
-Match host "*.platform.sh" exec "ssh-add -d ~/.platformsh/.session/sess-cli-default/ssh/id_ed25519 > /dev/null 2>&1"
+Match host "*.platform.sh" exec "ssh-add -L | grep -F 'platformsh-cli-temporary-cert' | ssh-add -d - > /dev/null 2>&1"
 Host *
 SSH_CONFIG
 
