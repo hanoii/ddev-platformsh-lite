@@ -63,13 +63,18 @@ echo -e "\n# Added by ddev-platformsh-lite add-on on $(date -u "+%Y-%m-%d %H:%m"
 
 # Remove key/cert
 cat <<'SSH_CONFIG' > ~/.ssh/config.platformsh-lite.pre.d/config
-Match host "*.platform.sh" exec "[ $CLI_SSH_NO_REFRESH'' = '1' ] || ssh-add -d ~/.platformsh/.session/sess-cli-default/ssh/id_ed25519 > /dev/null 2>&1"
+Match host "*.platform.sh" exec "ssh-add -d ~/.platformsh/.session/sess-cli-default/ssh/id_ed25519 > /dev/null 2>&1"
 Host *
 SSH_CONFIG
 
-# Add key/cert and configure ssh to forward agent keys
+# Add key/cert to the agent
 cat <<'SSH_CONFIG' > ~/.ssh/config.platformsh-lite.d/config
-Match host "*.platform.sh" exec "[ $CLI_SSH_NO_REFRESH'' = '1' ] || ssh-add ~/.platformsh/.session/sess-cli-default/ssh/id_ed25519 > /dev/null 2>&1"
+Match host "*.platform.sh" exec "ssh-add ~/.platformsh/.session/sess-cli-default/ssh/id_ed25519 > /dev/null 2>&1"
+Host *
+SSH_CONFIG
+
+# Optionally set ForwardAgent=yes to all ssh connections to *.platform.sh hostnames
+[ -n "$DDEV_PLATFORMSH_LITE_SSH_FORWARDAGENT" ] && cat <<'SSH_CONFIG' >> ~/.ssh/config.platformsh-lite.d/config || true
 Host *.platform.sh
   ForwardAgent yes
 Host *
