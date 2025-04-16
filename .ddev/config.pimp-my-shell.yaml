@@ -8,14 +8,18 @@ webimage_extra_packages:
   - boxes
   - bsdmainutils
   - build-essential
+  - certbot
   - colorized-logs
   - cowsay
   - dialog
+  - dnsutils
   - figlet
   - htop
   - libarchive-tools
   - lolcat
   - lua5.4
+  - man-db
+  - moreutils
   - net-tools
   - pipx
   - pv
