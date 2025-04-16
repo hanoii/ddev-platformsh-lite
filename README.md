@@ -40,6 +40,8 @@ Add-on features:
 - exposes two (or more) ports to the host so that so one can use
   `ddev platform tunnel:open` (see below)
 - check for existance of needed environment variables
+- special ssh key/cert handling (adds certificates to ddev's ssh agent
+  automatically and configures ssh to forward agent keys on platform.sh domains)
 
 ## platform tunnel:open
 
