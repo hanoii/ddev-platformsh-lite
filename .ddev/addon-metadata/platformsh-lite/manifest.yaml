@@ -1,13 +1,14 @@
 name: platformsh-lite
 repository: .
 version: ""
-install_date: "2025-04-19T13:43:15-03:00"
+install_date: "2025-04-19T13:45:37-03:00"
 project_files:
     - config.platformsh-lite.yaml
     - docker-compose.platformsh-lite.yaml
     - platformsh-lite/.gitignore
     - platformsh-lite/.ahoy.platformsh-lite.yml
     - platformsh-lite/.ahoy.ifnotpresent.yml
+    - platformsh-lite/scripts/activities.sh
     - platformsh-lite/scripts/check-platformsh-cli-token.sh
     - platformsh-lite/scripts/check-valid-platformsh-cli-token.sh
     - platformsh-lite/scripts/db-pull.sh
