@@ -4,6 +4,7 @@ commands:
   storage:
     usage: "See plan storage usage across apps and services."
     cmd: |
+      set -e
       .ddev/platformsh-lite/scripts/check-valid-platformsh-cli-token.sh
       DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-ahoy platform storage}" .ddev/platformsh-lite/scripts/storage.sh "$@"
 
@@ -27,3 +28,10 @@ commands:
       set -e
       .ddev/platformsh-lite/scripts/check-valid-platformsh-cli-token.sh
       .ddev/platformsh-lite/scripts/switch.sh
+
+  activities:
+    usage: "Choose activities to log (excluding cron/backups)"
+    cmd: |
+      set -e
+      .ddev/platformsh-lite/scripts/check-valid-platformsh-cli-token.sh
+      .ddev/platformsh-lite/scripts/activities.sh "$@"
