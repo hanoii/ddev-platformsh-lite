@@ -1,5 +1,5 @@
 [![tests](https://github.com/hanoii/ddev-platformsh-lite/actions/workflows/tests.yml/badge.svg)](https://github.com/hanoii/ddev-platformsh-lite/actions/workflows/tests.yml)
-![project is maintained](https://img.shields.io/maintenance/yes/2024.svg)
+![project is maintained](https://img.shields.io/maintenance/yes/2025.svg)
 
 <!-- toc -->
 
@@ -27,7 +27,7 @@ core functionality while remaining lightweight and flexible.
 ## Installation
 
 ```bash
-ddev get hanoii/ddev-platformsh-lite
+ddev add-on get https://github.com/hanoii/ddev-platformsh-lite/tarball/main
 ```
 
 ## Configuration
@@ -92,7 +92,7 @@ ddev exec ahoy platform db:pull
 # Specify environment
 ddev exec ahoy platform db:pull -e staging
 
-# Basic database pull (download only)
+# Basic database pull (simpler download)
 ddev exec ahoy platform db:pull:lite
 ```
 
