@@ -25,17 +25,24 @@ pre_install_actions:
     if ({{ contains "PLATFORM_PROJECT=" (list .DdevProjectConfig.web_environment | toString) }} ); then
       echo "Using existing PLATFORM_PROJECT from project config.yaml."
     else
-      printf "\n\nPlease enter your platform.sh project ID (like '6k4ypl5iendqd'): "
+      printf "\n\nPlease enter your platform.sh project ID (like '6k4ypl5iendqd') or leave blank to skip: "
     fi
 
   - |
     #ddev-description:Set PLATFORM_PROJECT
+    #ddev-warning-exit-code:127
     if !( {{ contains "PLATFORM_PROJECT" (list .DdevProjectConfig.web_environment | toString) }} ); then
       read platform_project
-      echo "platform_project = '${platform_project}'"
-      # Put the platform_project in to the project's web environment
-      ddev config --web-environment-add PLATFORM_PROJECT=${platform_project}
-      echo "PLATFORM_PROJECT set to ${platform_project}"
+      # Only set PLATFORM_PROJECT if user provided a non-empty value
+      if [ -n "${platform_project}" ]; then
+        # Put the platform_project in to the project's web environment
+        ddev config --web-environment-add PLATFORM_PROJECT=${platform_project}
+        echo "PLATFORM_PROJECT set to ${platform_project}"
+      else
+        echo "No project ID provided. Skipping PLATFORM_PROJECT configuration."
+        echo "Most of the commands works best with this environment variable set."
+        exit 127
+      fi
     fi
 
 post_install_actions:
