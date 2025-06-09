@@ -10,6 +10,7 @@ Usage: ${DDEV_PLATFORMSH_LITE_HELP_CMD-$0} [options]
   -e ENVIRONMENT    Specify the environment to pull database from.
   -r RELATIONSHIP   Specify the database relationship to pull from.
   -p PROJECT        Specify a Platform.sh project to pull from.
+  -f FILENAME       Specify a custom dump filename (optional).
   -n                Do not download, expect the dump to be already downloaded.
   -o                Import only, do not run post-import-db hooks.
 EOM
@@ -24,10 +25,11 @@ app=""
 environment=""
 relationship=""
 project=""
+filename=""
 download=true
 post_import=true
 
-while getopts ":hA:e:r:p:no" option; do
+while getopts ":hA:e:r:p:f:no" option; do
   case ${option} in
     h)
       print_help
@@ -44,6 +46,9 @@ while getopts ":hA:e:r:p:no" option; do
       ;;
     p)
       project=$OPTARG
+      ;;
+    f)
+      filename=$OPTARG
       ;;
     n)
       download=false
@@ -97,7 +102,10 @@ fi
 gum log --level info "Environment: $environment"
 gum log --level info "Relationship: $relationship"
 
-filename=dump-${relationship}-$environment.sql.gz
+# Set filename if not provided via -f option
+if [[ -z "$filename" ]]; then
+  filename=dump-${relationship}-$environment.sql.gz
+fi
 
 gum log --level info "Creating $filename..."
 
