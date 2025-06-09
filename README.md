@@ -4,65 +4,127 @@
 <!-- toc -->
 
 - [What is ddev-platformsh-lite?](#what-is-ddev-platformsh-lite)
-- [platform tunnel:open](#platform-tunnelopen)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Features](#features)
+- [Platform.sh Tunnels](#platformsh-tunnels)
+- [Database Operations](#database-operations)
+- [SSH Configuration](#ssh-configuration)
+- [Troubleshooting](#troubleshooting)
 
 <!-- tocstop -->
 
 ## What is ddev-platformsh-lite?
 
-This is my own take to platformsh integration, a lite one.
+A lightweight Platform.sh integration for DDEV that provides essential
+functionality without the tight coupling of the official integration.
 
-ddev has a first class [Platform.sh integration][ddev-platformsh] and an
-[official add-on][ddev-platformsh-addon], but it's too tightly coupled to
-everything platform.sh.
+Unlike the
+[official Platform.sh integration](https://ddev.readthedocs.io/en/stable/users/providers/platform/)
+and [add-on](https://github.com/ddev/ddev-platformsh), this add-on focuses on
+core functionality while remaining lightweight and flexible.
 
-[ddev-platformsh]:
-  https://ddev.readthedocs.io/en/stable/users/providers/platform/
-[ddev-platformsh-addon]: https://github.com/ddev/ddev-platformsh
+## Installation
 
-This addon needs an [API token][platformsh-api-token] through
-`config.local.yaml` with the following:
+```bash
+ddev get hanoii/ddev-platformsh-lite
+```
+
+## Configuration
+
+This addon requires a Platform.sh
+[API token](https://docs.platform.sh/administration/cli/api-tokens.html). Add it
+to your project's `config.local.yaml`:
 
 ```yaml
 web_environment:
   - PLATFORMSH_CLI_TOKEN=<YOUR_CLI_TOKEN>
 ```
 
-[platformsh-api-token]:
-  https://docs.platform.sh/administration/cli/api-tokens.html
+Optionally, specify a default Platform.sh project in your `config.yaml`:
 
-Add-on features:
+```yaml
+web_environment:
+  - PLATFORM_PROJECT=your-project-id
+```
 
-- Updates the cli
-- Set logical environment variables
-- Generate ssh certs for keyless ssh calls
-- Add drush aliases if project is drupal
-- Exposes two (or more) ports to the host so that so one can use
-  `ddev platform tunnel:open` (see below)
-- Check for existance of needed environment variables
-- Special ssh key/cert handling
-  - Adds certificates to ddev's ssh agent automatically
-  - Optionaly configures ssh to forward agent keys on platform.sh domains. If
-    you want need this to happen automatically all the time, please add
-    `DDEV_PLATFORMSH_LITE_SSH_FORWARDAGENT=true` to your project's `config.yaml`
-    or alternatively to `config.local.yaml`
+## Features
 
-## platform tunnel:open
+- **CLI Management**: Automatically updates the Platform.sh CLI
+- **Environment Variables**: Sets logical environment variables for Platform.sh
+  integration
+- **SSH Configuration**: Generates SSH certificates for keyless connections
+- **Drush Integration**: Adds Drush aliases for Drupal projects
+- **Service Tunnels**: Exposes ports to access Platform.sh services locally
+- **Database Operations**: Simplified database pull commands with smart defaults
 
-This add-on exposes [two ports](docker-compose.platformsh-lite.yaml) (30000
-and 30001) which covers a redis and a database services. If you need to expose
-more ports a nd do not wish to modify/manage this add-on's files you can create
-`.ddev/.env` file on your project with the following:
+## Platform.sh Tunnels
+
+Access Platform.sh services (databases, Redis, etc.) directly from your local
+environment:
+
+1. **Open tunnels**:
+
+   ```bash
+   ddev platform tunnel:open
+   ```
+
+2. **View connection details**:
+   ```bash
+   ddev platform:tunnels
+   ```
+
+By default, ports 30000-30001 are exposed. Need more? Create `.ddev/.env` with:
 
 ```
-# Exposes 30000, 30001, 30002 and 30003
+# Exposes ports 30000 through 30003
 DDEV_PLATFORMSH_LITE_TUNNEL_UPPER_RANGE=30003
 ```
 
-In order that multiple projects can run at the same time, a random hosts port
-will be used. To find the mapping ones you can use the following host command
-that will output properly formatted urls for each platform service:
+## Database Operations
 
+Pull databases from Platform.sh environments:
+
+```bash
+# Interactive database pull with smart defaults
+ddev exec ahoy platform db:pull
+
+# Specify environment
+ddev exec ahoy platform db:pull -e staging
+
+# Basic database pull (download only)
+ddev exec ahoy platform db:pull:lite
 ```
-ddev platform:tunnels
+
+## SSH Configuration
+
+The addon handles SSH keys and certificates automatically:
+
+- Adds Platform.sh certificates to DDEV's SSH agent
+- Optionally forwards agent keys on Platform.sh domains
+
+To enable SSH agent forwarding, add to your `config.yaml` or
+`config.local.yaml`:
+
+```yaml
+web_environment:
+  - DDEV_PLATFORMSH_LITE_SSH_FORWARDAGENT=true
 ```
+
+## Troubleshooting
+
+If you encounter issues with tunnels:
+
+1. Check if you have enough ports exposed:
+
+   ```bash
+   ddev platform:tunnels
+   ```
+
+2. If you see warnings about unexposed ports, increase the port range as
+   described in the [Platform.sh Tunnels](#platformsh-tunnels) section.
+
+3. Verify your Platform.sh token is valid:
+   ```bash
+   ddev exec platform auth:info
+   ```
