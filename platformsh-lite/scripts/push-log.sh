@@ -9,6 +9,7 @@ Usage: ${DDEV_PLATFORMSH_LITE_HELP_CMD-$0} [options]
   -c                Choose from the latest push activities.
   -l                The limit amount for the choose option, it defaults to 10 (platform cli default).
   -e ENVIRONMENT    Use a different environment to get activity log from.
+  -p PROJECT_ID     Use a specific platform project ID.
 EOM
 )
 
@@ -18,8 +19,10 @@ function print_help() {
 
 environment=
 cmd_environment=
+project_id=
+cmd_project=
 choose=
-while getopts ":hce:l:" option; do
+while getopts ":hce:l:p:" option; do
   case ${option} in
     h)
       print_help
@@ -35,26 +38,30 @@ while getopts ":hce:l:" option; do
       environment=$OPTARG
       cmd_environment="-e $environment"
       ;;
+    p)
+      project_id=$OPTARG
+      cmd_project="-p $project_id"
+      ;;
   esac
 done
 # Resetting OPTIND so that getopts can be used afterwards again
 OPTIND=1
 
 if [[ $choose -eq 1 ]]; then
-  ACTIVITY=$(platform activities $cmd_environment --type=environment.push --format=tsv --no-header $cmd_limit | gum filter | awk '{print $1}')
+  ACTIVITY=$(platform activities $cmd_project $cmd_environment --type=environment.push --format=tsv --no-header $cmd_limit | gum filter | awk '{print $1}')
 else
-  PENDING=$({ platform activities $cmd_environment --type environment.push --all --state=pending --format=plain --columns=id --no-header 2> /dev/null || true; } | wc -l)
+  PENDING=$({ platform activities $cmd_project $cmd_environment --type environment.push --all --state=pending --format=plain --columns=id --no-header 2> /dev/null || true; } | wc -l)
   state_flag=
   if [[ "$PENDING" -gt 0 ]]; then
     gum log --level warn "There are still $PENDING pending builds"
     state_flag="--state=in_progress"
   fi
 
-  ACTIVITY=$(platform activities $cmd_environment --type environment.push --limit 1 $state_flag --format=plain --columns=id --no-header)
+  ACTIVITY=$(platform activities $cmd_project $cmd_environment --type environment.push --limit 1 $state_flag --format=plain --columns=id --no-header)
 fi
 
 if [ -n "$ACTIVITY" ]; then
-  platform activity:log $ACTIVITY
+  platform activity:log $cmd_project $ACTIVITY
 else
   gum log --level error "There's no push in progress to log"
 fi
