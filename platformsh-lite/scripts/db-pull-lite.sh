@@ -13,6 +13,7 @@ Usage: ${DDEV_PLATFORMSH_LITE_HELP_CMD-$0} [options]
   -f FILENAME       Specify a custom dump filename (optional).
   -n                Do not download, expect the dump to be already downloaded.
   -o                Import only, do not run post-import-db hooks.
+  -d                Download only, do not import or run post-import-db hooks.
 EOM
 )
 
@@ -28,8 +29,9 @@ project=""
 filename=""
 download=true
 post_import=true
+download_only=false
 
-while getopts ":hA:e:r:p:f:no" option; do
+while getopts ":hA:e:r:p:f:nod" option; do
   case ${option} in
     h)
       print_help
@@ -55,6 +57,9 @@ while getopts ":hA:e:r:p:f:no" option; do
       ;;
     o)
       post_import=false
+      ;;
+    d)
+      download_only=true
       ;;
     :)
       gum log --level fatal -- "Option '-${OPTARG}' requires an argument."
@@ -107,7 +112,7 @@ if [[ -z "$filename" ]]; then
   filename=dump-${relationship}-$environment.sql.gz
 fi
 
-gum log --level info "Creating $filename..."
+gum log --level info "Creating dump file: $filename"
 
 if [[ "$download" == "true" ]]; then
   # Detect structure tables for Drupal projects
@@ -157,6 +162,11 @@ else
     gum log --level error "Dump ${filename} not found. Please run it without -n."
     exit 3
   fi
+fi
+
+if [[ "$download_only" == "true" ]]; then
+  gum log --level info "Download completed. Skipping import and post-import hooks."
+  exit 0
 fi
 
 # Import the database
