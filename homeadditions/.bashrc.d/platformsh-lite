@@ -1,0 +1,5 @@
+#ddev-generated
+
+if [[ "$DDEV_PROJECT_TYPE" != *"drupal"* ]] || [[ ! -f .platform/local/project.yaml ]]; then
+  export PLATFORMSH_CLI_APPLICATION_DRUSH_ALIASES=0
+fi
