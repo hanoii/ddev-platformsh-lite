@@ -40,6 +40,8 @@ if [ ! -z "$PLATFORMSH_CLI_TOKEN" ]; then
   # And create drush aliases, we need to have set remote
   if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]] && [[ -f .platform/local/project.yaml ]]; then
     platform drush-aliases -r -g ${DDEV_PROJECT} -y
+  else
+    echo "export PLATFORMSH_CLI_APPLICATION_DRUSH_ALIASES=0" > ~/.bashrc.d/platformsh-lite-post-start
   fi
 else
   gum log --level=warn PLATFORMSH_CLI_TOKEN is empty, the usual platform post-start commands have not run.

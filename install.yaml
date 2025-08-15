@@ -16,7 +16,6 @@ project_files:
 - platformsh-lite/hooks/post-start.sh
 - commands/web/platform
 - commands/host/platform:tunnels
-- homeadditions/.bashrc.d/platformsh-lite
 
 pre_install_actions:
   # Some of these actions taken from https://github.com/ddev/ddev-platformsh
