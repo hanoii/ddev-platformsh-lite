@@ -32,7 +32,7 @@ pre_install_actions:
     #ddev-description:Set PLATFORM_PROJECT
     #ddev-warning-exit-code:127
     if !( {{ contains "PLATFORM_PROJECT" (list .DdevProjectConfig.web_environment | toString) }} ); then
-      read platform_project
+      read platform_project || platform_project=""
       # Only set PLATFORM_PROJECT if user provided a non-empty value
       if [ -n "${platform_project}" ]; then
         # Put the platform_project in to the project's web environment
