@@ -17,6 +17,9 @@ project_files:
 - commands/web/platform
 - commands/host/platform:tunnels
 
+dependencies:
+  - pimp-my-shell
+
 pre_install_actions:
   # Some of these actions taken from https://github.com/ddev/ddev-platformsh
   # Get PLATFORM_PROJECT from user if we don't have it yet
