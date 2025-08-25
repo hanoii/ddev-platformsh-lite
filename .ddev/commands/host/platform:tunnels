@@ -1,25 +1,26 @@
 #!/bin/bash
 
 ## #ddev-generated
-## Description: Show urls of any platform tunnel opened url with host ports.
-## Usage: platform:tunnels [-e environment] [-c|--clear] [other platform args]
+## Description: Show URLs of Platform.sh tunnels with host port mappings
+## Usage: platform:tunnels [-e environment] [-c|--close] [other platform args]
 ## Example: ddev platform:tunnels
 ## Example: ddev platform:tunnels -e staging
-## Example: ddev platform:tunnels --clear
+## Example: ddev platform:tunnels --close
 
 [[ -f .ddev/.env ]] && source .ddev/.env
 
 # Default values
 environment=""
-clear_tunnels=false
+close_tunnels=false
 platform_args=()
+gateway_errors=false
 
-# Get default branch from platform project info if no environment specified
+# Get default environment from project if not specified
 get_default_environment() {
   if [[ -z "$environment" ]]; then
     environment=$(ddev exec "platform project:info default_branch --format=plain" 2>/dev/null || echo "master")
     if [[ -z "$environment" ]]; then
-      environm  ent="master"
+      environment="master"
     fi
   fi
 }
@@ -31,16 +32,16 @@ while [[ $# -gt 0 ]]; do
       environment="$2"
       shift 2
       ;;
-    -c|--clear)
-      clear_tunnels=true
+    -c|--close)
+      close_tunnels=true
       shift
       ;;
     -h|--help)
-      echo "Usage: ddev platform:tunnels [-e environment] [-c|--clear] [other platform args]"
+      echo "Usage: ddev platform:tunnels [-e environment] [-c|--close] [other platform args]"
       echo ""
       echo "Options:"
       echo "  -e ENVIRONMENT    Specify environment (default: production branch from project)"
-      echo "  -c, --clear       Close all tunnels and exit"
+      echo "  -c, --close       Close all tunnels and exit"
       echo "  -h, --help        Show this help"
       echo ""
       echo "Other arguments are passed through to platform tunnel commands."
@@ -48,7 +49,7 @@ while [[ $# -gt 0 ]]; do
       echo "Examples:"
       echo "  ddev platform:tunnels                    # Show tunnels for production environment"
       echo "  ddev platform:tunnels -e staging         # Show tunnels for staging environment"
-      echo "  ddev platform:tunnels --clear            # Close all tunnels"
+      echo "  ddev platform:tunnels --close            # Close all tunnels"
       exit 0
       ;;
     *)
@@ -61,11 +62,11 @@ done
 # Get the default environment if not specified
 get_default_environment
 
-# Check if there are any tunnels open first
+# Check for existing tunnels
 tunnel_list=$(ddev exec "platform tunnels --all --format=csv --no-header || true")
 
-# Handle clear tunnels option
-if [[ "$clear_tunnels" == true ]]; then
+# Handle close tunnels option
+if [[ "$close_tunnels" == true ]]; then
   if [[ -z "$tunnel_list" ]]; then
     echo -e "\033[0;33m[info] No Platform.sh tunnels are currently open.\033[0m"
   else
@@ -76,21 +77,18 @@ if [[ "$clear_tunnels" == true ]]; then
   exit 0
 fi
 
+# Auto-open tunnels if none exist
 if [[ -z "$tunnel_list" ]]; then
   echo -e "\033[0;33m[info] No Platform.sh tunnels are currently open.\033[0m"
-  echo -e "\033[0;36m[info] Opening tunnels automatically...\033[0m"
+  echo -e "\033[0;36m[info] Opening tunnels automatically for environment: \033[0;35m$environment\033[0m"
   echo ""
 
-  # Run the tunnel open command
   ddev platform tunnel:open -g -y -e "$environment" "${platform_args[@]}" &>/dev/null
-
-  echo ""
   echo -e "\033[0;32m[info] Tunnels opened! Checking host port mappings...\033[0m"
   echo ""
 
   # Re-check for tunnels after opening them
   tunnel_list=$(ddev exec "platform tunnels --all --format=csv --no-header || true")
-
   if [[ -z "$tunnel_list" ]]; then
     echo -e "\033[0;31m[error] Failed to open tunnels or no services available for tunneling.\033[0m"
     exit 1
@@ -100,22 +98,67 @@ fi
 echo -e "\033[0;32m[info] Found open tunnels, checking host port mappings...\033[0m"
 echo ""
 
+# Get all tunnel info in one call for efficiency
+all_tunnel_info=$(ddev exec "platform tunnel:info")
+
+# Cache for project titles to avoid repeated API calls
+cached_projects=""
+
+# Process each tunnel
 for i in $tunnel_list; do
   IFS=, read -r port project environment app property <<<"$i"
-  container_info_yml=$(ddev exec "platform tunnel:info -p $project -A $app -e $environment -P $property")
-  container_info=$(ddev exec "echo \"$container_info_yml\" | yq '.[] |= (.scheme |= sub(\"solr\", \"http\")) |= .url = .scheme + \"://\" | .[] |= with(select(.username != null); .url += .username) | .[] |= with(select(.password != null); .url += \":\" + .password) | .[] |= with(select(.username != null); .url += \"@\") | .[] |= .url += \"127.0.0.1:\" + .port | .[] | .port + \" \" + .url'")
+
+  # Get project title with caching
+  cache_key="|$project:"
+  if [[ "$cached_projects" == *"$cache_key"* ]]; then
+    temp="${cached_projects#*$cache_key}"
+    project_title="${temp%%|*}"
+  else
+    project_title=$(ddev exec "platform project:info title -p $project --format=plain" 2>/dev/null || echo "$project")
+    cached_projects="${cached_projects}|$project:$project_title"
+  fi
+
+  # Extract tunnel connection info from cached data
+  container_info=$(ddev exec "echo \"$all_tunnel_info\" | yq '.[] | .[] | select(.port == '$port') | (.scheme |= sub(\"solr\", \"http\")) | .url = .scheme + \"://\" | with(select(.username != null); .url += .username) | with(select(.password != null); .url += \":\" + .password) | with(select(.username != null); .url += \"@\") | .url += \"127.0.0.1:\" + .port | .port + \" \" + .url'")
   container_parts=($container_info)
   container_port=${container_parts[0]}
-  host_port=$(~/.ddev/bin/docker-compose -f .ddev/.ddev-docker-compose-full.yaml port web $container_port 2> /dev/null)
+
+  # Check listening status to detect gateway issues
+  all_listeners=$(ddev exec "ss -tlnp 2>/dev/null | grep ':$container_port ' || netstat -tlnp 2>/dev/null | grep ':$container_port ' || echo 'no listeners found'" 2>/dev/null)
+  is_listening_localhost=$(echo "$all_listeners" | grep "127.0.0.1:$container_port" || true)
+  is_listening_all=$(echo "$all_listeners" | grep "0.0.0.0:$container_port" || true)
+
+  # Try to get host port mapping
+  host_port=$(~/.ddev/bin/docker-compose -f .ddev/.ddev-docker-compose-full.yaml port web $container_port 2>/dev/null)
+  host_port_result=$?
   host_port=${host_port##*:}
-  if [[ $? -eq 0 ]]; then
-    echo $property: ${container_parts[1]/"$container_port"/"$host_port"}
+
+  # Check if service is listening on localhost only (missing -g flag)
+  if [[ -n "$is_listening_localhost" && -z "$is_listening_all" ]]; then
+    # Gateway issue - service exists but only listening on localhost
+    gateway_errors=true
+    echo -e "\033[0;36m$project_title\033[0m (\033[0;35m$environment\033[0m) - \033[0;31m[error] $property tunnel on port $container_port is not accessible from host (missing -g flag)\033[0m"
+  elif [[ $host_port_result -eq 0 ]]; then
+    # Success - Docker mapping works and service is properly accessible
+    echo -e "\033[0;36m$project_title\033[0m (\033[0;35m$environment\033[0m) - $property: ${container_parts[1]/"$container_port"/"$host_port"}"
   else
-    error=true
-    echo -e "\033[0;33m[warning] port $container_port is not currently exposed on ddev. You cannot access ${container_parts[1]}\033[0m"
+    # Docker port mapping failed - diagnose the issue
+    upper_range=${DDEV_PLATFORMSH_LITE_TUNNEL_UPPER_RANGE:-32767}
+    if [[ "$container_port" -gt "$upper_range" ]]; then
+      # Port range issue
+      echo -e "\033[0;36m$project_title\033[0m (\033[0;35m$environment\033[0m) - \033[0;31m[error] $property tunnel on port $container_port is outside DDEV's port range\033[0m"
+      echo -e "  \033[0;33m[fix] Port $container_port > $upper_range (DDEV_PLATFORMSH_LITE_TUNNEL_UPPER_RANGE). Increase the range in ~/.ddev/.env:\033[0m"
+      echo -e "  \033[0;37mDDEV_PLATFORMSH_LITE_TUNNEL_UPPER_RANGE=$((container_port + 100))\033[0m"
+    else
+      # Other port mapping issue
+      echo -e "\033[0;36m$project_title\033[0m (\033[0;35m$environment\033[0m) - \033[0;33m[warning] $property tunnel on port $container_port is not currently exposed on ddev\033[0m"
+      echo -e "  \033[0;33m[info] You cannot access ${container_parts[1]}\033[0m"
+    fi
   fi
 done
 
-if [[ "$error" == "true" ]]; then
-  echo -e "\033[0;33m[warning] Consider increasing DDEV_PLATFORMSH_LITE_TUNNEL_UPPER_RANGE on your ~.ddev/.env file.\033[0m"
+# Show helpful tip if there were gateway errors
+if [[ "$gateway_errors" == true ]]; then
+  echo ""
+  echo -e "\033[0;33m[tip] You can use 'ddev platform:tunnels --close' to close all tunnels.\033[0m"
 fi
