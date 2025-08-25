@@ -2,18 +2,112 @@
 
 ## #ddev-generated
 ## Description: Show urls of any platform tunnel opened url with host ports.
-## Usage: platform:tunnels
+## Usage: platform:tunnels [-e environment] [-c|--clear] [other platform args]
 ## Example: ddev platform:tunnels
+## Example: ddev platform:tunnels -e staging
+## Example: ddev platform:tunnels --clear
 
 [[ -f .ddev/.env ]] && source .ddev/.env
 
-for i in $(ddev exec "platform tunnels --all --format=csv --no-header || true"); do
+# Default values
+environment=""
+clear_tunnels=false
+platform_args=()
+
+# Get default branch from platform project info if no environment specified
+get_default_environment() {
+  if [[ -z "$environment" ]]; then
+    environment=$(ddev exec "platform project:info default_branch --format=plain" 2>/dev/null || echo "master")
+    if [[ -z "$environment" ]]; then
+      environm  ent="master"
+    fi
+  fi
+}
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -e)
+      environment="$2"
+      shift 2
+      ;;
+    -c|--clear)
+      clear_tunnels=true
+      shift
+      ;;
+    -h|--help)
+      echo "Usage: ddev platform:tunnels [-e environment] [-c|--clear] [other platform args]"
+      echo ""
+      echo "Options:"
+      echo "  -e ENVIRONMENT    Specify environment (default: production branch from project)"
+      echo "  -c, --clear       Close all tunnels and exit"
+      echo "  -h, --help        Show this help"
+      echo ""
+      echo "Other arguments are passed through to platform tunnel commands."
+      echo ""
+      echo "Examples:"
+      echo "  ddev platform:tunnels                    # Show tunnels for production environment"
+      echo "  ddev platform:tunnels -e staging         # Show tunnels for staging environment"
+      echo "  ddev platform:tunnels --clear            # Close all tunnels"
+      exit 0
+      ;;
+    *)
+      platform_args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+# Get the default environment if not specified
+get_default_environment
+
+# Check if there are any tunnels open first
+tunnel_list=$(ddev exec "platform tunnels --all --format=csv --no-header || true")
+
+# Handle clear tunnels option
+if [[ "$clear_tunnels" == true ]]; then
+  if [[ -z "$tunnel_list" ]]; then
+    echo -e "\033[0;33m[info] No Platform.sh tunnels are currently open.\033[0m"
+  else
+    echo -e "\033[0;33m[info] Closing all Platform.sh tunnels...\033[0m"
+    ddev platform tunnel:close --all -y
+    echo -e "\033[0;32m[info] All tunnels closed.\033[0m"
+  fi
+  exit 0
+fi
+
+if [[ -z "$tunnel_list" ]]; then
+  echo -e "\033[0;33m[info] No Platform.sh tunnels are currently open.\033[0m"
+  echo -e "\033[0;36m[info] Opening tunnels automatically...\033[0m"
+  echo ""
+
+  # Run the tunnel open command
+  ddev platform tunnel:open -g -y -e "$environment" "${platform_args[@]}" &>/dev/null
+
+  echo ""
+  echo -e "\033[0;32m[info] Tunnels opened! Checking host port mappings...\033[0m"
+  echo ""
+
+  # Re-check for tunnels after opening them
+  tunnel_list=$(ddev exec "platform tunnels --all --format=csv --no-header || true")
+
+  if [[ -z "$tunnel_list" ]]; then
+    echo -e "\033[0;31m[error] Failed to open tunnels or no services available for tunneling.\033[0m"
+    exit 1
+  fi
+fi
+
+echo -e "\033[0;32m[info] Found open tunnels, checking host port mappings...\033[0m"
+echo ""
+
+for i in $tunnel_list; do
   IFS=, read -r port project environment app property <<<"$i"
-  container_info=$(ddev exec "platform tunnel:info -p $project -A $app -e $environment -P $property | yq '.[] |= (.scheme |= sub(\"solr\", \"http\")) |= .url = .scheme + \"://\" | .[] |= with(select(.username != null); .url += .username) | .[] |= with(select(.password != null); .url += \":\" + .password) | .[] |= with(select(.username != null); .url += \"@\") | .[] |= .url += \"127.0.0.1:\" + .port | .[] | .port + \" \" + .url'")
+  container_info_yml=$(ddev exec "platform tunnel:info -p $project -A $app -e $environment -P $property")
+  container_info=$(ddev exec "echo \"$container_info_yml\" | yq '.[] |= (.scheme |= sub(\"solr\", \"http\")) |= .url = .scheme + \"://\" | .[] |= with(select(.username != null); .url += .username) | .[] |= with(select(.password != null); .url += \":\" + .password) | .[] |= with(select(.username != null); .url += \"@\") | .[] |= .url += \"127.0.0.1:\" + .port | .[] | .port + \" \" + .url'")
   container_parts=($container_info)
   container_port=${container_parts[0]}
   host_port=$(~/.ddev/bin/docker-compose -f .ddev/.ddev-docker-compose-full.yaml port web $container_port 2> /dev/null)
-  host_port=${host_port#0.0.0.0:}
+  host_port=${host_port##*:}
   if [[ $? -eq 0 ]]; then
     echo $property: ${container_parts[1]/"$container_port"/"$host_port"}
   else
