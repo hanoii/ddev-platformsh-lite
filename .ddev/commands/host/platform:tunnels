@@ -99,7 +99,7 @@ echo -e "\033[0;32m[info] Found open tunnels, checking host port mappings...\033
 echo ""
 
 # Get all tunnel info in one call for efficiency
-all_tunnel_info=$(ddev exec "platform tunnel:info")
+all_tunnel_info=$(ddev exec "platform tunnel:info -e $environment ${platform_args[@]}")
 
 # Cache for project titles to avoid repeated API calls
 cached_projects=""
