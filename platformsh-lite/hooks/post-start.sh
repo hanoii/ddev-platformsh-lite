@@ -22,6 +22,10 @@ if [[ $(platform --version) =~ "Platform.sh CLI 4".* ]]; then
 else
   gum log --level=info Updating platformsh-cli...
   curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | VENDOR=platformsh bash | grep -E "Unpacking|newest" --color=never
+  if command -v upsun >/dev/null 2>&1; then
+    gum log --level=info Updating upsun-cli...
+    curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | VENDOR=upsun bash | grep -E "Unpacking|newest" --color=never
+  fi
 fi
 
 if [ ! -z "$PLATFORMSH_CLI_TOKEN" ]; then
