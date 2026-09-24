@@ -20,8 +20,16 @@
 A lightweight Platform.sh integration for DDEV that provides essential
 functionality without the tight coupling of the official integration.
 
+> [!NOTE]
+> [Platform.sh is now Upsun](https://upsun.com/platform-sh-is-now-upsun/), and
+> the Platform.sh offering is called Upsun Fixed. The `platform` CLI and the
+> `PLATFORM_*`/`PLATFORMSH_*` environment variables this add-on relies on keep
+> working, and the
+> [Upsun Fixed CLI docs](https://fixed.docs.upsun.com/administration/cli.html)
+> still document them. This add-on keeps the Platform.sh naming for now.
+
 Unlike the
-[official Platform.sh integration](https://ddev.readthedocs.io/en/stable/users/providers/platform/)
+[official Platform.sh integration](https://docs.ddev.com/en/stable/users/providers/platform/)
 and [add-on](https://github.com/ddev/ddev-platformsh), this add-on focuses on
 core functionality while remaining lightweight and flexible.
 
@@ -51,8 +59,8 @@ commands:
 ## Configuration
 
 This addon requires a Platform.sh
-[API token](https://docs.platform.sh/administration/cli/api-tokens.html). Add it
-to your project's `config.local.yaml`:
+[API token](https://fixed.docs.upsun.com/administration/cli/api-tokens.html).
+Add it to your project's `config.local.yaml`:
 
 ```yaml
 web_environment:
