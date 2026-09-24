@@ -1,5 +1,6 @@
-[![tests](https://github.com/hanoii/ddev-platformsh-lite/actions/workflows/tests.yml/badge.svg)](https://github.com/hanoii/ddev-platformsh-lite/actions/workflows/tests.yml)
-![project is maintained](https://img.shields.io/maintenance/yes/2025.svg)
+[![tests](https://github.com/hanoii/ddev-platformsh-lite/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/hanoii/ddev-platformsh-lite/actions/workflows/tests.yml?query=branch%3Amain)
+[![last commit](https://img.shields.io/github/last-commit/hanoii/ddev-platformsh-lite)](https://github.com/hanoii/ddev-platformsh-lite/commits)
+![project is maintained](https://img.shields.io/maintenance/yes/2026.svg)
 
 <!-- toc -->
 
@@ -26,8 +27,25 @@ core functionality while remaining lightweight and flexible.
 
 ## Installation
 
+This add-on depends on
+[hanoii/ddev-pimp-my-shell](https://github.com/hanoii/ddev-pimp-my-shell),
+install it first:
+
 ```bash
+ddev add-on get hanoii/ddev-pimp-my-shell
 ddev add-on get https://github.com/hanoii/ddev-platformsh-lite/tarball/main
+```
+
+The `ahoy` commands are exposed under `ahoy platform`. If your project does not
+have a root `.ahoy.yml` yet, copy `.ddev/platformsh-lite/.ahoy.ifnotpresent.yml`
+to `.ahoy.yml`. Otherwise, add the import to your existing one:
+
+```yaml
+commands:
+  platform:
+    usage: "Platform commands"
+    imports:
+      - .ddev/platformsh-lite/.ahoy.platformsh-lite.yml
 ```
 
 ## Configuration
@@ -87,14 +105,21 @@ Pull databases from Platform.sh environments:
 
 ```bash
 # Interactive database pull with smart defaults
-ddev exec ahoy platform db:pull
+ddev ahoy platform db:pull
 
 # Specify environment
-ddev exec ahoy platform db:pull -e staging
+ddev ahoy platform db:pull -e staging
 
-# Basic database pull (simpler download)
-ddev exec ahoy platform db:pull:lite
+# Basic database pull, requires environment and relationship
+ddev ahoy platform db:pull:lite -e main -r database
 ```
+
+Other `ahoy platform` commands:
+
+- `push:log`: show the latest push activity log, `-w` waits for one in progress
+- `activities`: choose an activity to log (excluding cron/backups)
+- `storage`: see plan storage usage across apps and services
+- `switch`: select a different project to run `platform` commands against
 
 ## SSH Configuration
 
@@ -126,5 +151,5 @@ If you encounter issues with tunnels:
 
 3. Verify your Platform.sh token is valid:
    ```bash
-   ddev exec platform auth:info
+   ddev platform auth:info
    ```

@@ -143,11 +143,11 @@ for i in $tunnel_list; do
     echo -e "\033[0;36m$project_title\033[0m (\033[0;35m$environment\033[0m) - $property: ${container_parts[1]/"$container_port"/"$host_port"}"
   else
     # Docker port mapping failed - diagnose the issue
-    upper_range=${DDEV_PLATFORMSH_LITE_TUNNEL_UPPER_RANGE:-32767}
+    upper_range=${DDEV_PLATFORMSH_LITE_TUNNEL_UPPER_RANGE:-30001}
     if [[ "$container_port" -gt "$upper_range" ]]; then
       # Port range issue
       echo -e "\033[0;36m$project_title\033[0m (\033[0;35m$environment\033[0m) - \033[0;31m[error] $property tunnel on port $container_port is outside DDEV's port range\033[0m"
-      echo -e "  \033[0;33m[fix] Port $container_port > $upper_range (DDEV_PLATFORMSH_LITE_TUNNEL_UPPER_RANGE). Increase the range in ~/.ddev/.env:\033[0m"
+      echo -e "  \033[0;33m[fix] Port $container_port > $upper_range (DDEV_PLATFORMSH_LITE_TUNNEL_UPPER_RANGE). Increase the range in .ddev/.env:\033[0m"
       echo -e "  \033[0;37mDDEV_PLATFORMSH_LITE_TUNNEL_UPPER_RANGE=$((container_port + 100))\033[0m"
     else
       # Other port mapping issue

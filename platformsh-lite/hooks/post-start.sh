@@ -63,9 +63,9 @@ mkdir -p ~/.ssh/config.platformsh-lite.d
 mkdir -p ~/.ssh/config.platformsh-lite.pre.d
 
 # Add includes from config.platformsh-lite.pre.d/* on top of ~/.ssh/config
-sed -i "1s@^@# Added by ddev-platformsh-lite add-on on $(date -u "+%Y-%m-%d %H:%m") \nInclude \"config.platformsh-lite.pre.d/*\"\n\n@" ~/.ssh/config
+sed -i "1s@^@# Added by ddev-platformsh-lite add-on on $(date -u "+%Y-%m-%d %H:%M") \nInclude \"config.platformsh-lite.pre.d/*\"\n\n@" ~/.ssh/config
 # Add includes from config.platformsh-lite.d/* to the end of ~/.ssh/config
-echo -e "\n# Added by ddev-platformsh-lite add-on on $(date -u "+%Y-%m-%d %H:%m") \nInclude \"config.platformsh-lite.d/*\"" >> ~/.ssh/config
+echo -e "\n# Added by ddev-platformsh-lite add-on on $(date -u "+%Y-%m-%d %H:%M") \nInclude \"config.platformsh-lite.d/*\"" >> ~/.ssh/config
 
 # Remove key/cert
 cat <<'SSH_CONFIG' > ~/.ssh/config.platformsh-lite.pre.d/config

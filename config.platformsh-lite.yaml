@@ -1,5 +1,5 @@
 #ddev-generated
-# To upgrade: ddev get https://github.com/hanoii/ddev-platformsh-lite/tarball/master
+# To upgrade: ddev add-on get https://github.com/hanoii/ddev-platformsh-lite/tarball/main
 # If you wish to maintain this file differently, remove #ddev-generated above.
 
 fail_on_hook_fail: true

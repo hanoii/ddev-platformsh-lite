@@ -10,6 +10,7 @@ project_files:
 - platformsh-lite/scripts/check-platformsh-cli-token.sh
 - platformsh-lite/scripts/check-valid-platformsh-cli-token.sh
 - platformsh-lite/scripts/db-pull.sh
+- platformsh-lite/scripts/db-pull-lite.sh
 - platformsh-lite/scripts/push-log.sh
 - platformsh-lite/scripts/storage.sh
 - platformsh-lite/scripts/switch.sh
@@ -43,7 +44,7 @@ pre_install_actions:
         echo "PLATFORM_PROJECT set to ${platform_project}"
       else
         echo "No project ID provided. Skipping PLATFORM_PROJECT configuration."
-        echo "Most of the commands works best with this environment variable set."
+        echo "Most of the commands work best with this environment variable set."
         exit 127
       fi
     fi
@@ -53,7 +54,7 @@ post_install_actions:
     #ddev-description: Remove deprecated host command platform ports
     remove_file="commands/host/platform:ports"
     if [ -f "$remove_file" ]; then
-      if grep '#ddev-generated' "$remove_file"; then
+      if grep -q '#ddev-generated' "$remove_file"; then
         rm "$remove_file"
       else
         echo "Existing "$remove_file" does not have #ddev-generated, so can't be removed"
@@ -63,18 +64,18 @@ post_install_actions:
     #ddev-description: Remove ./.ddev/platformsh-lite-addon-post-start.sh, it was moved/renamed
     remove_file="platformsh-lite-addon-post-start.sh"
     if [ -f "$remove_file" ]; then
-      if grep '#ddev-generated' "$remove_file"; then
+      if grep -q '#ddev-generated' "$remove_file"; then
         rm "$remove_file"
       else
         echo "Existing "$remove_file" does not have #ddev-generated, so can't be removed."
-        echo "A new file was installed to platformsh-lite/post-start.sh, review the differences, update and remove manually."
+        echo "A new file was installed to platformsh-lite/hooks/post-start.sh, review the differences, update and remove manually."
       fi
     fi
   - |
     #ddev-description: Remove ./.ddev/pimp-my-shell/hooks/post-import-db.d/00-drupal.sh, it was moved/renamed
     remove_file="pimp-my-shell/hooks/post-import-db.d/00-drupal.sh"
     if [ -f "$remove_file" ]; then
-      if grep '#ddev-generated' "$remove_file"; then
+      if grep -q '#ddev-generated' "$remove_file"; then
         rm "$remove_file"
       else
         echo "Existing "$remove_file" does not have #ddev-generated, so can't be removed."
