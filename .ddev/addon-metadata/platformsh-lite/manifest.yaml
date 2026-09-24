@@ -3,7 +3,7 @@ repository: .
 version: ""
 dependencies:
     - pimp-my-shell
-install_date: "2025-09-24T23:08:34-03:00"
+install_date: "2026-09-23T23:59:47-03:00"
 project_files:
     - config.platformsh-lite.yaml
     - docker-compose.platformsh-lite.yaml
@@ -14,6 +14,7 @@ project_files:
     - platformsh-lite/scripts/check-platformsh-cli-token.sh
     - platformsh-lite/scripts/check-valid-platformsh-cli-token.sh
     - platformsh-lite/scripts/db-pull.sh
+    - platformsh-lite/scripts/db-pull-lite.sh
     - platformsh-lite/scripts/push-log.sh
     - platformsh-lite/scripts/storage.sh
     - platformsh-lite/scripts/switch.sh

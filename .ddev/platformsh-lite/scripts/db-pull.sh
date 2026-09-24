@@ -21,21 +21,52 @@ function print_help() {
 
 env_file=/var/www/html/.ddev/platformsh-lite/.env.v3
 
-while getopts ":rh" option; do
+reset_defaults=false
+environment_override=
+should_download=true
+should_run_post_import=true
+download_only=false
+
+while getopts ":hrne:od" option; do
   case ${option} in
     h)
       print_help
       exit 0
       ;;
     r)
-      [[ -f $env_file ]] && rm $env_file
+      reset_defaults=true
+      ;;
+    n)
+      should_download=false
+      ;;
+    e)
+      environment_override=$OPTARG
+      ;;
+    o)
+      should_run_post_import=false
+      ;;
+    d)
+      download_only=true
+      ;;
+    :)
+      gum log --level fatal -- "Option '-${OPTARG}' requires an argument."
+      echo "$USAGE"
+      exit 1
+      ;;
+    ?)
+      gum log --level fatal -- "Invalid option: -${OPTARG}."
+      echo "$USAGE"
+      exit 1
       ;;
   esac
 done
-# Resetting OPTIND so that getopts can be used afterwards again
-OPTIND=1
+shift $((OPTIND-1))
 
-if [[ ! -f $env_file ]]; then
+if [[ "$reset_defaults" == "true" ]]; then
+  [[ -f "$env_file" ]] && rm "$env_file"
+fi
+
+if [[ ! -f "$env_file" ]]; then
   print_help --foreground 8 --border-foreground 8
 
   gum log --level warn "First time running this command, querying platform for defaults..."
@@ -57,71 +88,38 @@ if [[ ! -f $env_file ]]; then
     exit 1
   fi
 
-  printf "%s\n" "DDEV_PLATFORMSH_LITE_PRODUCTION_BRANCH=$environment" "DDEV_PLATFORMSH_LITE_DEFAULT_APP=$app" "DDEV_PLATFORMSH_LITE_DEFAULT_RELATIONSHIP=$relationship" "DDEV_PLATFORMSH_LITE_DEFAULT_RELATIONSHIP_CNT=$relationships_cnt" > $env_file
+  printf "%s\n" "DDEV_PLATFORMSH_LITE_PRODUCTION_BRANCH=$environment" "DDEV_PLATFORMSH_LITE_DEFAULT_APP=$app" "DDEV_PLATFORMSH_LITE_DEFAULT_RELATIONSHIP=$relationship" "DDEV_PLATFORMSH_LITE_DEFAULT_RELATIONSHIP_CNT=$relationships_cnt" > "$env_file"
 else
-  gum log --level debug --structured "Reading defaults from env file" file $env_file
-  . $env_file
+  gum log --level debug --structured "Reading defaults from env file" file "$env_file"
+  . "$env_file"
   environment=$DDEV_PLATFORMSH_LITE_PRODUCTION_BRANCH
   app=$DDEV_PLATFORMSH_LITE_DEFAULT_APP
   relationship=$DDEV_PLATFORMSH_LITE_DEFAULT_RELATIONSHIP
   relationships_cnt=$DDEV_PLATFORMSH_LITE_DEFAULT_RELATIONSHIP_CNT
 fi
 
-gum log --level info Production environment: $environment
-gum log --level info Default App: $app
+if [[ -n "$environment_override" ]]; then
+  environment=$environment_override
+fi
+
+gum log --level info "Production environment: $environment"
+gum log --level info "Default App: $app"
 gum log --level info "Default relationship: $relationship (total relationships: $relationships_cnt)"
 
-relationship_array=(${relationship//\// })
-relationship_name=${relationship_array[0]}
-relationship_scheme=${relationship_array[1]}
+IFS=/ read -r relationship_name relationship_scheme <<< "$relationship"
 
 cmd_environment="-e $environment"
-download=true
-post_import=true
-download_only=false
-
-while getopts ":hne:ord" option; do
-  case ${option} in
-    h)
-      ;;
-    n)
-      download=
-      ;;
-    e)
-      environment=$OPTARG
-      cmd_environment="-e $environment"
-      ;;
-    o)
-      post_import=
-      ;;
-    d)
-      download_only=true
-      ;;
-    r)
-      ;;
-    :)
-      echo -e "\033[1;31m[error] -${OPTARG} requires an argument.\033[0m"
-      echo "$USAGE"
-      exit 1
-      ;;
-    ?)
-      echo -e "\033[1;31m[error] Invalid option: -${OPTARG}.\033[0m"
-      echo "$USAGE"
-      exit 1
-      ;;
-  esac
-done
-shift $((OPTIND-1))
 
 filename=dump-${relationship_name}-$environment.sql.gz
 
-gum log --level info "Creating $filename..."
+if [[ "$should_download" == "true"  ]]; then
+  gum log --level info "Creating $filename..."
 
-if [[ "$download" == "true"  ]]; then
-  if [ ! -z ${DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE+x} ]; then
+  structure_tables=
+  if [[ -n "${DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE:-}" ]]; then
     structure_tables=$DDEV_PLATFORMSH_LITE_DRUSH_SQL_EXCLUDE
   else
-    if [[ "$DDEV_PROJECT_TYPE" == *"drupal"* ]] || [[ "$DDEV_BROOKSDIGITAL_PROJECT_TYPE" == *"drupal"* ]]; then
+    if [[ "${DDEV_PROJECT_TYPE:-}" == *"drupal"* ]] || [[ "${DDEV_BROOKSDIGITAL_PROJECT_TYPE:-}" == *"drupal"* ]]; then
       if [[ "$relationship_scheme" == "mysql" ]]; then
         structure_tables=$(gum spin --show-output --title="Drupal project type, finding schema only tables..." -- platform -y db:sql -A $app -r ${relationship_name} $cmd_environment "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND (TABLE_NAME LIKE 'cache%' OR TABLE_NAME LIKE 'watchdog') ORDER BY TABLE_NAME" --raw | awk 'FNR > 1 {print}' | sed -z 's/\n/,/g' | sed 's/,$//')
         gum log --level debug "Schema only tables: $structure_tables"
@@ -131,7 +129,6 @@ if [[ "$download" == "true"  ]]; then
       fi
     fi
   fi
-
 
   cmd_structure_tables=
   cmd_exclude_tables=
@@ -145,33 +142,39 @@ if [[ "$download" == "true"  ]]; then
     temp_filename_schema=$(mktemp)
     temp_filename_data=$(mktemp)
     gum spin --show-output --title="Dumping schema only tables..." -- platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_structure_tables --schema-only --gzip -o > $temp_filename_schema
+    gum spin --show-output --title="Dumping data tables..." -- platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_exclude_tables --gzip -o > $temp_filename_data
+    # attempt to remove /*!999999\- enable the sandbox mode */ if there
+    # @see https://mariadb.org/mariadb-dump-file-compatibility-change/
+    gunzip < "$temp_filename_schema" | tail -n +2 | gzip > "$temp_filename"
+    gunzip < "$temp_filename_data" | tail -n +2 | gzip >> "$temp_filename"
+    rm -f "$filename"
+    mv "$temp_filename" "$filename"
+    rm -f "$temp_filename_schema" "$temp_filename_data"
+  else
+    gum spin --show-output --title="Dumping database..." -- platform -y db:dump -A $app -r ${relationship_name} $cmd_environment --gzip -o > "$filename"
   fi
-  gum spin --show-output --title="Dumping data tables..." -- platform -y db:dump -A $app -r ${relationship_name} $cmd_environment $cmd_exclude_tables --gzip -o > $temp_filename_data
-  # attempt to remove /*!999999\- enable the sandbox mode */ if there
-  # @see https://mariadb.org/mariadb-dump-file-compatibility-change/
-  cat $temp_filename_schema | gunzip | tail +2 | gzip > $temp_filename
-  cat $temp_filename_data | gunzip | tail +2 | gzip >> $temp_filename
-  rm -f $filename
-  mv $temp_filename $filename
 else
-  if [ ! -f $filename ]; then
+  gum log --level info "Using existing dump file: $filename"
+  if [[ ! -f "$filename" ]]; then
     gum log --level error "Dump ${filename} not found. Please run it without -n."
     exit 3
   fi
 fi
 
 if [[ "$download_only" == "true" ]]; then
-  gum log --level info "Download completed. Skipping import and post-import hooks."
+  gum log --level info "Skipping import and post-import hooks."
   exit 0
 fi
+
+gum log --level info "Importing database from $filename..."
 
 # Here we use the mysql database otherwise mysql alone will
 # fail because 'db' will not be there once dropped.
 mysql -uroot -proot -e 'DROP DATABASE IF EXISTS db' mysql
 mysql -uroot -proot -e 'CREATE DATABASE db' mysql
-pv $filename | gunzip | mysql
+pv "$filename" | gunzip | mysql
 
-if [ -n "$post_import" ]; then
+if [[ "$should_run_post_import" == "true" ]]; then
   # Run all post-import-db scripts
   /var/www/html/.ddev/pimp-my-shell/hooks/post-import-db.sh -A $app -r ${relationship_name} $cmd_environment
 fi
