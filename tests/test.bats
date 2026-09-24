@@ -41,7 +41,7 @@ setup() {
 health_checks() {
   run ddev platform --version
   assert_success
-  assert_output --partial "Platform.sh CLI"
+  assert_output --regexp "(Platform.sh|Upsun) CLI"
 
   cp .ddev/platformsh-lite/.ahoy.ifnotpresent.yml .ahoy.yml
   run ddev ahoy platform
