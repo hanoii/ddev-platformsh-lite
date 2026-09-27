@@ -2,7 +2,7 @@
 ahoyapi: v2
 commands:
   storage:
-    usage: "See plan storage usage across apps and services."
+    usage: "Subscription storage vs. allocated/used per app and service. Accepts project ids or --all."
     cmd: |
       set -e
       .ddev/platformsh-lite/scripts/check-valid-platformsh-cli-token.sh
