@@ -126,7 +126,9 @@ Other `ahoy platform` commands:
 
 - `push:log`: show the latest push activity log, `-w` waits for one in progress
 - `activities`: choose an activity to log (excluding cron/backups)
-- `storage`: see plan storage usage across apps and services
+- `storage`: subscription storage vs. allocated/used per app and service, fetched
+  from the Platform.sh API. Accepts project ids, `-e ENV`, or `--all` to walk
+  every project
 - `switch`: select a different project to run `platform` commands against
 
 ## SSH Configuration
