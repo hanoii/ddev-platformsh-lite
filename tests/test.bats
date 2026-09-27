@@ -47,6 +47,11 @@ health_checks() {
   run ddev ahoy platform
   assert_output --partial "db:pull"
 
+  cp .ddev/platformsh-lite/Taskfile.ifnotpresent.yml Taskfile.yml
+  run ddev task --list
+  assert_success
+  assert_output --partial "platform:db:pull"
+
   run ddev exec .ddev/platformsh-lite/scripts/db-pull-lite.sh -h
   assert_success
   assert_output --partial "Usage:"

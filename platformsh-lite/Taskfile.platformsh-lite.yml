@@ -1,0 +1,50 @@
+#ddev-generated
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: '3'
+
+silent: true
+
+tasks:
+  token:
+    internal: true
+    cmds:
+      - .ddev/platformsh-lite/scripts/check-valid-platformsh-cli-token.sh
+
+  storage:
+    desc: Subscription storage vs. allocated/used per app and service. Accepts project ids or --all.
+    cmds:
+      - task: token
+      - DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-task {{.TASK}} --}" .ddev/platformsh-lite/scripts/storage.sh {{.CLI_ARGS}}
+
+  push:log:
+    desc: See the latest push activity log.
+    cmds:
+      - task: token
+      - DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-task {{.TASK}} --}" .ddev/platformsh-lite/scripts/push-log.sh {{.CLI_ARGS}}
+
+  db:pull:
+    desc: Pull database from the production environment with auto-detection of defaults and useful interactions.
+    interactive: true
+    cmds:
+      - task: token
+      - DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-task {{.TASK}} --}" .ddev/platformsh-lite/scripts/db-pull.sh {{.CLI_ARGS}}
+
+  db:pull:lite:
+    desc: Pull database from the production environment. A basic command that only does the download.
+    cmds:
+      - task: token
+      - DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-task {{.TASK}} --}" .ddev/platformsh-lite/scripts/db-pull-lite.sh {{.CLI_ARGS}}
+
+  switch:
+    desc: Select a different project to run 'platform' commands against
+    interactive: true
+    cmds:
+      - task: token
+      - .ddev/platformsh-lite/scripts/switch.sh
+
+  activities:
+    desc: Choose activities to log (excluding cron/backups)
+    interactive: true
+    cmds:
+      - task: token
+      - .ddev/platformsh-lite/scripts/activities.sh {{.CLI_ARGS}}

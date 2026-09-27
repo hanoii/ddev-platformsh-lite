@@ -56,6 +56,18 @@ commands:
       - .ddev/platformsh-lite/.ahoy.platformsh-lite.yml
 ```
 
+The same commands are available for [Task](https://taskfile.dev) under the
+`platform:` namespace. If your project does not have a root `Taskfile.yml` yet,
+copy `.ddev/platformsh-lite/Taskfile.ifnotpresent.yml` to `Taskfile.yml`.
+Otherwise, add the include to your existing one:
+
+```yaml
+includes:
+  platform: .ddev/platformsh-lite/Taskfile.platformsh-lite.yml
+```
+
+Pass arguments after `--`, e.g. `ddev task platform:db:pull -- -e staging`.
+
 ## Configuration
 
 This addon requires a Platform.sh
