@@ -14,26 +14,26 @@ tasks:
     desc: Subscription storage vs. allocated/used per app and service. Accepts project ids or --all.
     cmds:
       - task: token
-      - DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-task {{.TASK}} --}" .ddev/platformsh-lite/scripts/storage.sh {{.CLI_ARGS}}
+      - DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-task {{.TASK}} --}" .ddev/platformsh-lite/scripts/storage.sh {{range .CLI_ARGS_LIST}}{{q .}} {{end}}
 
   push:log:
     desc: See the latest push activity log.
     cmds:
       - task: token
-      - DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-task {{.TASK}} --}" .ddev/platformsh-lite/scripts/push-log.sh {{.CLI_ARGS}}
+      - DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-task {{.TASK}} --}" .ddev/platformsh-lite/scripts/push-log.sh {{range .CLI_ARGS_LIST}}{{q .}} {{end}}
 
   db:pull:
     desc: Pull database from the production environment with auto-detection of defaults and useful interactions.
     interactive: true
     cmds:
       - task: token
-      - DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-task {{.TASK}} --}" .ddev/platformsh-lite/scripts/db-pull.sh {{.CLI_ARGS}}
+      - DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-task {{.TASK}} --}" .ddev/platformsh-lite/scripts/db-pull.sh {{range .CLI_ARGS_LIST}}{{q .}} {{end}}
 
   db:pull:lite:
     desc: Pull database from the production environment. A basic command that only does the download.
     cmds:
       - task: token
-      - DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-task {{.TASK}} --}" .ddev/platformsh-lite/scripts/db-pull-lite.sh {{.CLI_ARGS}}
+      - DDEV_PLATFORMSH_LITE_HELP_CMD="${DDEV_PLATFORMSH_LITE_HELP_CMD-task {{.TASK}} --}" .ddev/platformsh-lite/scripts/db-pull-lite.sh {{range .CLI_ARGS_LIST}}{{q .}} {{end}}
 
   switch:
     desc: Select a different project to run 'platform' commands against
@@ -47,4 +47,4 @@ tasks:
     interactive: true
     cmds:
       - task: token
-      - .ddev/platformsh-lite/scripts/activities.sh {{.CLI_ARGS}}
+      - .ddev/platformsh-lite/scripts/activities.sh {{range .CLI_ARGS_LIST}}{{q .}} {{end}}
